@@ -1,8 +1,10 @@
 import * as Yup from 'yup';
-import { startOfHour, parseISO, isBefore } from 'date-fns';
+import { startOfHour, parseISO, isBefore, format } from 'date-fns';
+import pt from 'date-fns/locale/pt';
 import User from '../Models/User';
 import File from '../Models/File';
 import Appointment from '../Models/Appointment';
+import Notification from '../Schemas/Notification';
 
 class AppointmentController {
   async index(req, res) {
@@ -50,9 +52,9 @@ class AppointmentController {
     });
 
     if (!isProvider) {
-      return res
-        .status(401)
-        .json({ error: 'You can only create appointmens with providers' });
+      return res.status(401).json({
+        error: 'You can only create appointmens with providers',
+      });
     }
 
     const hourStart = startOfHour(parseISO(date));
@@ -70,21 +72,36 @@ class AppointmentController {
     });
 
     if (checkAvailability) {
-      return res
-        .status(400)
-        .json({ error: 'Appointment date is not available.' });
+      return res.status(400).json({
+        error: 'Appointment date is not available.',
+      });
     }
 
     if (req.userId === provider_id) {
-      return res
-        .status(400)
-        .json({ error: 'User cannot schedule an appointment for himself.' });
+      return res.status(400).json({
+        error: 'User cannot schedule an appointment for himself.',
+      });
     }
 
     const appointment = await Appointment.create({
       user_id: req.userId,
       provider_id,
       date,
+    });
+
+    /**
+     * Notify appointment provider
+     */
+    const { name } = await User.findByPk(req.userId);
+    const formattedDate = format(
+      hourStart,
+      "'dia' dd 'de' MMMM', às' H:mm'h'",
+      { locale: pt }
+    );
+
+    await Notification.create({
+      content: `Novo agendamento de ${name} para ${formattedDate}`,
+      user: provider_id,
     });
 
     return res.json(appointment);
