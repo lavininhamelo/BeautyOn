@@ -1,28 +1,38 @@
 import * as Yup from 'yup';
+
 import User from '../Models/User';
+import File from '../Models/File';
 
 class UserController {
   async store(req, res) {
     const schema = Yup.object().shape({
-      name: Yup.string().required(),
+      name: Yup.string().required('Name is invalid'),
       email: Yup.string()
         .email()
         .required(),
       password: Yup.string()
-        .required()
+        .required('Password must contain at least 6 characters')
         .min(6),
     });
 
-    if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
-    }
+    schema.validate(req.body, { abortEarly: false }).catch(e => {
+      return res.status(400).json(e.errors);
+    });
 
     const userExists = await User.findOne({ where: { email: req.body.email } });
+
     if (userExists) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'User already exists.' });
     }
-    const { id, name, email, provider, lastname } = await User.create(req.body);
-    return res.json({ id, name, email, provider, lastname });
+
+    const { id, name, email, provider } = await User.create(req.body);
+
+    return res.json({
+      id,
+      name,
+      email,
+      provider,
+    });
   }
 
   async update(req, res) {
@@ -39,24 +49,47 @@ class UserController {
         password ? field.required().oneOf([Yup.ref('password')]) : field
       ),
     });
-    if (!(await schema.isValid(req.body))) {
-      return res.status(400).json({ error: 'Validation fails' });
-    }
+
+    schema.validate(req.body, { abortEarly: false }).catch(e => {
+      return res.status(400).json(e.errors);
+    });
+
     const { email, oldPassword } = req.body;
+
     const user = await User.findByPk(req.userId);
+
     if (email !== user.email) {
-      const userExists = await User.findOne({ where: { email } });
+      const userExists = await User.findOne({
+        where: { email },
+      });
+
       if (userExists) {
-        return res.status(400).json({ error: 'User already exists' });
+        return res.status(400).json({ error: 'User already exists.' });
       }
     }
+
     if (oldPassword && !(await user.checkPassword(oldPassword))) {
-      return res.status(401).json({ error: 'Password does not mach' });
+      return res.status(401).json({ erro: 'Password does not match' });
     }
 
-    const { id, name, provider } = await user.update(req.body);
+    await user.update(req.body);
 
-    return res.json({ id, name, email, provider });
+    const { id, name, avatar } = await User.findByPk(req.userId, {
+      include: [
+        {
+          model: File,
+          as: 'avatar',
+          attributes: ['id', 'path', 'url'],
+        },
+      ],
+    });
+
+    return res.json({
+      id,
+      name,
+      email,
+      avatar,
+    });
   }
 }
 

@@ -5,6 +5,9 @@ import User from '../Models/User';
 
 class ScheduleController {
   async index(req, res) {
+    /**
+     * Check if user is an provider
+     */
     const checkUserProvider = await User.findOne({
       where: {
         id: req.userId,
@@ -16,6 +19,9 @@ class ScheduleController {
       return res.status(400).json({ error: 'User is not a provider' });
     }
 
+    /**
+     * check appointments of day
+     */
     const { date } = req.query;
     const parsedDate = parseISO(date);
 

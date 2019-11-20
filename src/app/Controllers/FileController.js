@@ -12,4 +12,5 @@ class FileController {
     return res.json(file);
   }
 }
+
 export default new FileController();
