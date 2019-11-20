@@ -6,23 +6,31 @@ import FileController from './app/Controllers/FileController';
 import ProviderController from './app/Controllers/ProviderController';
 import AppointmentController from './app/Controllers/AppointmentController';
 import ScheduleController from './app/Controllers/ScheduleController';
-import authMiddlewares from './app/Middlewares/auth';
+import NotificationController from './app/Controllers/NotificationController';
 import multerConfig from './config/multer';
+
+import authMiddleware from './app/Middlewares/auth';
 
 const routes = new Router();
 const upload = multer(multerConfig);
 
-routes.post('/sessions', SessionController.store);
 routes.post('/users', UserController.store);
+routes.post('/sessions', SessionController.store);
 
-// Router Authorization
-routes.use(authMiddlewares);
+routes.use(authMiddleware);
 
 routes.put('/users', UserController.update);
+
 routes.get('/providers', ProviderController.index);
-routes.post('/appointment', AppointmentController.store);
-routes.get('/appointment', AppointmentController.index);
+
+routes.get('/appointments', AppointmentController.index);
+routes.post('/appointments', AppointmentController.store);
+
 routes.get('/schedule', ScheduleController.index);
+
+routes.get('/notifications', NotificationController.index);
+routes.put('/notifications/:id', NotificationController.update);
+
 routes.post('/files', upload.single('file'), FileController.store);
 
 export default routes;
