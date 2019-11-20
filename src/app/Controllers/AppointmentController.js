@@ -6,6 +6,9 @@ import File from '../Models/File';
 import Appointment from '../Models/Appointment';
 import Notification from '../Schemas/Notification';
 
+import CancellationMail from '../jobs/CancellationMail';
+import Queue from '../../lib/Queue';
+
 class AppointmentController {
   async index(req, res) {
     const { page = 1 } = req.query;
@@ -152,6 +155,10 @@ class AppointmentController {
     appointment.canceled_at = new Date();
 
     await appointment.save();
+
+    await Queue.add(CancellationMail.key, {
+      appointment,
+    });
 
     return res.json(appointment);
   }
