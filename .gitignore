@@ -1,0 +1,56 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+jspm_packages/
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Build output
+dist/
+build/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Testing / coverage
+coverage/
+.nyc_output/
+*.lcov
+
+# Caches
+.cache/
+.eslintcache
+.npm
+.parcel-cache/
+.next/
+.nuxt/
+
+# Runtime
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Cursor / docs
+.cursor/
+.docs/
+
+# Project-specific
+api/tmp/uploads/
+!api/tmp/uploads/.gitkeep

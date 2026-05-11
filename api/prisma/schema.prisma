@@ -1,0 +1,269 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int     @id @default(autoincrement())
+  name      String
+  email     String  @unique
+  phone     String? @unique
+  passwordHash String @map("password_hash")
+  provider  Boolean @default(false)
+  avatarId  Int?    @map("avatar_id")
+  registeredByProviderId Int? @map("registered_by_provider_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  avatar   File?    @relation("UserAvatar", fields: [avatarId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  asUser   Appointment[] @relation("UserAppointments")
+  asProvider Appointment[] @relation("ProviderAppointments")
+  providerServices ProviderService[] @relation("ProviderServices")
+  registeredByProvider User? @relation("ProviderRegisteredClients", fields: [registeredByProviderId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  clientsRegistered User[] @relation("ProviderRegisteredClients")
+  clientClearances ProviderClientClearance[] @relation("ProviderClientClearanceUser")
+  providerClearances ProviderClientClearance[] @relation("ProviderClientClearanceProvider")
+  recordedAppointmentRecords AppointmentRecord[] @relation("AppointmentRecordRecordedByProvider")
+  clientAccount ClientAccount?
+  providerClients ProviderClient[] @relation("ProviderClientProvider")
+  weeklyScheduleHours ProviderWeeklyHour[]
+  dateScheduleOverrides ProviderDateOverride[]
+  notifications Notification[]
+
+  @@map("users")
+}
+
+model Client {
+  id        Int     @id @default(autoincrement())
+  name      String
+  email     String?
+  phone     String  @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  account ClientAccount?
+  providers ProviderClient[]
+  appointments Appointment[]
+  claimTokens ClientClaimToken[]
+
+  @@map("clients")
+}
+
+model ClientAccount {
+  id        Int      @id @default(autoincrement())
+  clientId  Int      @unique @map("client_id")
+  userId    Int      @unique @map("user_id")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([clientId])
+  @@index([userId])
+  @@map("client_accounts")
+}
+
+model ProviderClient {
+  id         Int      @id @default(autoincrement())
+  providerId Int      @map("provider_id")
+  clientId   Int      @map("client_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  provider User   @relation("ProviderClientProvider", fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([providerId, clientId])
+  @@index([providerId])
+  @@index([clientId])
+  @@map("provider_clients")
+}
+
+model File {
+  id        Int     @id @default(autoincrement())
+  name      String
+  path      String  @unique
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  userAvatars User[] @relation("UserAvatar")
+  appointmentRecordPhotos AppointmentRecordPhoto[]
+
+  @@map("files")
+}
+
+model ProviderService {
+  id               Int      @id @default(autoincrement())
+  providerId       Int      @map("provider_id")
+  name             String
+  durationMinutes  Int      @map("duration_minutes")
+  isEvaluation     Boolean  @default(false) @map("is_evaluation")
+  requiresPriorEvaluation Boolean @default(false) @map("requires_prior_evaluation")
+  sortOrder        Int      @default(0) @map("sort_order")
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
+
+  provider User @relation("ProviderServices", fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  appointments Appointment[]
+
+  @@index([providerId])
+  @@map("provider_services")
+}
+
+model ProviderWeeklyHour {
+  id         Int      @id @default(autoincrement())
+  providerId Int      @map("provider_id")
+  weekday    Int
+  time       String
+  enabled    Boolean  @default(true)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([providerId, weekday, time])
+  @@index([providerId, weekday])
+  @@map("provider_weekly_hours")
+}
+
+model ProviderDateOverride {
+  id         Int      @id @default(autoincrement())
+  providerId Int      @map("provider_id")
+  dateYmd    String   @map("date_ymd")
+  time       String?
+  enabled    Boolean  @default(false)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@unique([providerId, dateYmd, time])
+  @@index([providerId, dateYmd])
+  @@map("provider_date_overrides")
+}
+
+model Appointment {
+  id         Int      @id @default(autoincrement())
+  date       DateTime
+  status     String   @default("scheduled")
+  statusUpdatedAt DateTime @default(now()) @map("status_updated_at")
+  userId     Int?     @map("user_id")
+  clientId   Int?     @map("client_id")
+  providerId Int?     @map("provider_id")
+  guestName  String?  @map("guest_name")
+  guestPhone String?  @map("guest_phone")
+  durationMinutes  Int?    @map("duration_minutes")
+  providerServiceId Int?   @map("provider_service_id")
+  canceledAt DateTime? @map("canceled_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user     User? @relation("UserAppointments", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  client   Client? @relation(fields: [clientId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  provider User? @relation("ProviderAppointments", fields: [providerId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  providerService ProviderService? @relation(fields: [providerServiceId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  record AppointmentRecord?
+  clearanceSources ProviderClientClearance[] @relation("ProviderClientClearanceSourceAppointment")
+
+  @@index([providerId, date])
+  @@index([clientId, date])
+  @@map("appointments")
+}
+
+model ClientClaimToken {
+  id        Int      @id @default(autoincrement())
+  tokenHash String   @unique @map("token_hash")
+  clientId  Int      @map("client_id")
+  email     String
+  expiresAt DateTime @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  client Client @relation(fields: [clientId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([clientId])
+  @@map("client_claim_tokens")
+}
+
+model ProviderClientClearance {
+  id                Int      @id @default(autoincrement())
+  providerId        Int      @map("provider_id")
+  phoneNormalized   String   @map("phone_normalized")
+  userId            Int?     @map("user_id")
+  grantedAt         DateTime @default(now()) @map("granted_at")
+  sourceAppointmentId Int?   @map("source_appointment_id")
+
+  provider User @relation("ProviderClientClearanceProvider", fields: [providerId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user     User? @relation("ProviderClientClearanceUser", fields: [userId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  sourceAppointment Appointment? @relation("ProviderClientClearanceSourceAppointment", fields: [sourceAppointmentId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
+  @@unique([providerId, phoneNormalized])
+  @@index([providerId, userId])
+  @@map("provider_client_clearances")
+}
+
+model AppointmentRecord {
+  id            Int      @id @default(autoincrement())
+  appointmentId Int      @unique @map("appointment_id")
+  notes         String   @db.Text
+  summary       String?  @db.Text
+  recordedAt    DateTime @default(now()) @map("recorded_at")
+  recordedByProviderId Int? @map("recorded_by_provider_id")
+
+  appointment Appointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  recordedByProvider User? @relation("AppointmentRecordRecordedByProvider", fields: [recordedByProviderId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  photos AppointmentRecordPhoto[]
+
+  @@index([recordedByProviderId])
+  @@map("appointment_records")
+}
+
+model AppointmentRecordPhoto {
+  id        Int      @id @default(autoincrement())
+  recordId  Int      @map("record_id")
+  fileId    Int      @map("file_id")
+  sortOrder Int      @default(0) @map("sort_order")
+  caption   String?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  record AppointmentRecord @relation(fields: [recordId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  file   File              @relation(fields: [fileId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([recordId])
+  @@index([fileId])
+  @@map("appointment_record_photos")
+}
+
+model Notification {
+  id        Int      @id @default(autoincrement())
+  content   String   @db.Text
+  userId    Int      @map("user_id")
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("notifications")
+}
+
+model Job {
+  id          Int       @id @default(autoincrement())
+  jobKey      String    @map("job_key")
+  payload     Json
+  status      String    @default("queued")
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5) @map("max_attempts")
+  runAt       DateTime  @default(now()) @map("run_at")
+  lastError   String?   @db.Text @map("last_error")
+  lockedAt    DateTime? @map("locked_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([status, runAt])
+  @@map("jobs")
+}

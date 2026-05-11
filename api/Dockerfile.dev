@@ -1,0 +1,13 @@
+FROM node:24-bookworm-slim
+
+WORKDIR /app
+
+COPY package.json package-lock.json* ./
+RUN npm install
+
+COPY docker/entrypoint.dev.sh /entrypoint.dev.sh
+RUN chmod +x /entrypoint.dev.sh
+
+EXPOSE 3333
+ENTRYPOINT ["/entrypoint.dev.sh"]
+CMD ["npm", "run", "dev"]
