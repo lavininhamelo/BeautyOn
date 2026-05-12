@@ -1,0 +1,26 @@
+{
+  "name": "beautyon",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "BeautyOn — single-deploy bundle: Express API serves the React SPA",
+  "main": "server.js",
+  "scripts": {
+    "install:all": "node scripts/install-if-needed.js web api",
+    "install:ci": "npm --prefix web ci && npm --prefix api ci",
+    "build:web": "npm --prefix web run build",
+    "build:api": "npm --prefix api run build",
+    "copy:web": "rm -rf api/dist/public && mkdir -p api/dist/public && cp -R web/build/. api/dist/public",
+    "build": "npm run install:all && npm run build:web && npm run build:api && npm run copy:web",
+    "build:ci": "npm run install:ci && npm run build:web && npm run build:api && npm run copy:web",
+    "migrate": "npm --prefix api run db:migrate:deploy",
+    "start": "node server.js",
+    "dev": "node server/dev.js",
+    "typecheck": "npm --prefix api run typecheck",
+    "pack": "node scripts/pack.js",
+    "pack:zip": "node scripts/pack.js --zip"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

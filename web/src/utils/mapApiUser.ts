@@ -4,7 +4,7 @@ export interface ApiUserResponse {
   email: string;
   phone?: string | null;
   provider?: boolean;
-  avatar?: { id: number; path: string; url: string } | null;
+  avatar?: { id: number; name?: string; path?: string | null; url: string } | null;
   avatar_url?: string;
 }
 

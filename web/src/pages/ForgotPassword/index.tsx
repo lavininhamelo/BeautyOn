@@ -29,8 +29,8 @@ const ForgotPassword: React.FunctionComponent = () => {
         if (r) r.setErrors({});
         const schema = Yup.object().shape({
           email: Yup.string()
-            .required('Required email')
-            .email('Enter a valid email'),
+            .required('E-mail obrigatório')
+            .email('Indica um e-mail válido'),
         });
         await schema.validate(data, {
           abortEarly: false,
@@ -42,9 +42,9 @@ const ForgotPassword: React.FunctionComponent = () => {
 
         addToast({
           type: 'success',
-          title: 'Email has been sent.',
+          title: 'E-mail enviado',
           description:
-            'An email has been sent to confirm your password recovery, please check your inbox.',
+            'Revisa a tua caixa de entrada: enviámos um e-mail com instruções para recuperar a palavra-passe.',
         });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -57,9 +57,8 @@ const ForgotPassword: React.FunctionComponent = () => {
         }
         addToast({
           type: 'error',
-          title: 'Password Recovery Error',
-          description:
-            'An error occurred while attempting to recover your password, try again.',
+          title: 'Erro ao recuperar palavra-passe',
+          description: 'Não foi possível enviar o e-mail. Tenta novamente.',
         });
       } finally {
         setLoading(false);
@@ -69,21 +68,28 @@ const ForgotPassword: React.FunctionComponent = () => {
   );
   return (
     <AuthLayout
-      title="Password Recovery"
+      title="Recuperar palavra-passe"
       backgroundImage={signInBackgroundImg}
       animationFrom="left"
     >
       <Form ref={formRef} onSubmit={handleFormSubmit}>
-        <h1>Password Recovery</h1>
+        <h1>Recuperar palavra-passe</h1>
 
-        <Input name="email" icon={FiMail} type="text" placeholder="Email" />
+        <Input
+          name="email"
+          icon={FiMail}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="E-mail"
+        />
         <Button loading={loading} type="submit">
-          Recover Password
+          Enviar instruções
         </Button>
       </Form>
       <Link to="/">
         <FiLogIn />
-        Return to login
+        Voltar ao início de sessão
       </Link>
     </AuthLayout>
   );

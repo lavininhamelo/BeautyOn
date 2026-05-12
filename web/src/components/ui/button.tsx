@@ -25,7 +25,7 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost: 'hover:bg-accent hover:text-accent-foreground',
   link: 'text-primary underline-offset-4 hover:underline',
   beauty:
-    'bg-[var(--color-primary)] text-[var(--color-background)] hover:brightness-95',
+    'bg-[var(--color-primary)] text-[var(--color-header-text)] hover:brightness-95',
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

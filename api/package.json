@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@prisma/adapter-mariadb": "^6.19.3",
     "@prisma/client": "^6.8.1",
     "@sentry/node": "10.50.0",
     "bcryptjs": "^3.0.3",
@@ -17,7 +18,8 @@
     "zod": "^3.25.76"
   },
   "scripts": {
-    "build": "prisma generate && tsc",
+    "build": "prisma generate && tsc && npm run copy:views",
+    "copy:views": "mkdir -p dist/app/Views && cp -R src/app/Views/. dist/app/Views/",
     "start": "node dist/server.js",
     "dev": "sh -c \"tsc -w --preserveWatchOutput & TSC_PID=$!; while [ ! -f dist/server.js ]; do sleep 0.2; done; node --watch dist/server.js; kill $TSC_PID\"",
     "dev:debug": "sh -c \"tsc -w --preserveWatchOutput & TSC_PID=$!; while [ ! -f dist/server.js ]; do sleep 0.2; done; node --inspect --watch dist/server.js; kill $TSC_PID\"",

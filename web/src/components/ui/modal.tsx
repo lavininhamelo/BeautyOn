@@ -47,26 +47,26 @@ export function Modal({
         type="button"
         tabIndex={-1}
         aria-hidden
-        className="absolute inset-0 bg-black/70 backdrop-blur-[2px]"
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
         onClick={onClose}
       />
       <div
         className={cn(
-          'relative z-[1] flex max-h-[92vh] w-full flex-col overflow-hidden rounded-2xl border border-white/[0.08] bg-[var(--color-background)] shadow-xl',
+          'relative z-[1] flex max-h-[92vh] w-full flex-col overflow-hidden rounded-2xl border border-[var(--color-input-border)] bg-[var(--color-white)] shadow-xl',
           panelClassName ?? 'max-w-lg',
         )}
       >
         {!hideChrome && (
-          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-white/[0.08] px-5 py-4">
+          <div className="flex shrink-0 items-center justify-between gap-4 border-b border-[var(--color-input-border)] px-5 py-4">
             <h2
               id="modal-title"
-              className="m-0 text-lg font-semibold text-[var(--color-white)]"
+              className="m-0 text-lg font-semibold text-[var(--color-text-white)]"
             >
               {title ?? ' '}
             </h2>
             <button
               type="button"
-              className="rounded-lg border border-white/[0.12] bg-white/[0.04] px-3 py-1.5 text-sm font-medium text-[var(--color-light-gray)] hover:bg-white/[0.08] hover:text-[var(--color-white)]"
+              className="rounded-lg border border-[var(--color-input-border)] bg-[var(--color-inputs)] px-3 py-1.5 text-sm font-medium text-[var(--color-text-white)] hover:bg-[var(--color-disabled-bg)]"
               onClick={onClose}
             >
               Fechar

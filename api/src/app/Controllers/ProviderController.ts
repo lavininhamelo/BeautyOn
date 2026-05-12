@@ -11,7 +11,7 @@ class ProviderController {
         name: true,
         email: true,
         avatarId: true,
-        avatar: { select: { name: true, path: true, id: true } },
+        avatar: { select: { name: true, id: true } },
       },
     });
 
@@ -21,9 +21,7 @@ class ProviderController {
         name: u.name,
         email: u.email,
         avatar_id: u.avatarId,
-        avatar: u.avatar
-          ? withFileUrl({ id: u.avatar.id, name: u.avatar.name, path: u.avatar.path })
-          : null,
+        avatar: u.avatar ? withFileUrl(u.avatar) : null,
       }))
     );
   }

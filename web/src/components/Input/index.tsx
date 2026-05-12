@@ -53,8 +53,8 @@ const Input: React.FunctionComponent<InputProps> = ({
       : isFocused
       ? 'border-[var(--color-primary)] text-[var(--color-primary)]'
       : isFilled
-      ? 'border-[var(--color-inputs)] text-[var(--color-primary)]'
-      : 'border-[var(--color-inputs)] text-[var(--color-hard-gray)]';
+      ? 'border-[var(--color-warm-mid)] text-[var(--color-primary)]'
+      : 'border-[var(--color-input-border)] text-[var(--color-hard-gray)]';
 
   return (
     <div

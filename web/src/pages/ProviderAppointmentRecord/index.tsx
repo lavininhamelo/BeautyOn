@@ -14,10 +14,11 @@ import {
   CardHeader,
   CardTitle,
 } from '../../components/ui/card';
+import { AppointmentRecordFileUploadPreview } from '../../components/file-upload/AppointmentRecordFileUploadPreview';
 
 type RecordPhoto = {
   id: number;
-  file: { id: number; path: string; name: string; url?: string };
+  file: { id: number; name: string; url?: string };
 };
 
 type RecordResponse = {
@@ -79,15 +80,17 @@ const ProviderAppointmentRecord: React.FC = () => {
     };
   }, [addToast, apptId]);
 
-  const previewUrls = useMemo(() => {
-    return newFiles.map(f => ({ file: f, url: URL.createObjectURL(f) }));
-  }, [newFiles]);
-
-  useEffect(() => {
-    return () => {
-      previewUrls.forEach(p => URL.revokeObjectURL(p.url));
-    };
-  }, [previewUrls]);
+  const existingPhotosForPreview = useMemo(
+    () =>
+      photos
+        .filter((p): p is typeof p & { file: { url: string } } => Boolean(p.file?.url))
+        .map(p => ({
+          id: p.id,
+          url: p.file.url,
+          name: p.file.name,
+        })),
+    [photos],
+  );
 
   const submit = useCallback(async () => {
     if (!Number.isFinite(apptId)) return;
@@ -104,7 +107,7 @@ const ProviderAppointmentRecord: React.FC = () => {
       addToast({
         type: 'error',
         title: 'Erro ao guardar',
-        description: (err as any)?.response?.data?.error ?? 'Tente novamente.',
+        description: (err as any)?.response?.data?.error ?? 'Tenta novamente.',
       });
     }
   }, [addToast, apptId, history, newFiles, notes, summary]);
@@ -116,7 +119,7 @@ const ProviderAppointmentRecord: React.FC = () => {
       <main className="mx-auto max-w-[720px] px-6 pb-20 pt-12">
         <Card className="mb-6 border-0 bg-[var(--color-black-medium)] text-[var(--color-text-white)] shadow-none">
           <CardHeader className="space-y-2">
-            <CardTitle className="text-[28px] font-semibold leading-tight text-[var(--color-white)]">
+            <CardTitle className="text-[28px] font-semibold leading-tight text-[var(--color-text-white)]">
               Registar atendimento
             </CardTitle>
             <p className="text-sm leading-normal text-[var(--color-light-gray)]">
@@ -150,45 +153,22 @@ const ProviderAppointmentRecord: React.FC = () => {
                 value={notes}
                 onChange={e => setNotes(e.target.value)}
                 placeholder="Observações, recomendações, preços indicados, fotos, etc."
-                className="min-h-[180px] resize-y border-[var(--color-hard-gray)] text-[var(--color-white)] placeholder:text-[var(--color-hard-gray)]"
+                className="min-h-[180px] resize-y border-[var(--color-hard-gray)] placeholder:text-[var(--color-hard-gray)]"
               />
             </div>
 
-            <label className="mb-4 block text-sm text-[var(--color-light-gray)]">
-              Fotos (opcional)
-              <input
-                className="mt-2 block w-full text-sm text-[var(--color-text-white)]"
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={e => {
-                  const files = Array.from(e.target.files ?? []);
-                  setNewFiles(files);
-                }}
+            <div className="mb-4">
+              <Label className="mb-2 block font-normal text-[var(--color-light-gray)]">
+                Fotografias (opcional)
+              </Label>
+              <AppointmentRecordFileUploadPreview
+                value={newFiles}
+                onValueChange={setNewFiles}
+                existingPhotos={existingPhotosForPreview}
+                disabled={loading}
+                onInvalid={msg => addToast({ type: 'error', title: msg })}
               />
-              <div className="mt-2.5 flex flex-wrap gap-2.5">
-                {photos.map(p => (
-                  <div
-                    key={p.id}
-                    className="flex h-[84px] w-[84px] items-center justify-center overflow-hidden rounded-[10px] border border-[var(--color-hard-gray)] bg-[var(--color-shape)]"
-                  >
-                    {p.file?.url ? (
-                      <img className="h-full w-full object-cover" src={p.file.url} alt="" />
-                    ) : (
-                      <span>OK</span>
-                    )}
-                  </div>
-                ))}
-                {previewUrls.map(p => (
-                  <div
-                    key={p.url}
-                    className="flex h-[84px] w-[84px] items-center justify-center overflow-hidden rounded-[10px] border border-[var(--color-hard-gray)] bg-[var(--color-shape)]"
-                  >
-                    <img className="h-full w-full object-cover" src={p.url} alt="" />
-                  </div>
-                ))}
-              </div>
-            </label>
+            </div>
 
             <Button type="button" onClick={submit}>
               Guardar

@@ -62,8 +62,8 @@ const ClaimAccount: React.FC = () => {
         const resp = await api.post<{ ok: boolean; eligible?: boolean; debug_code?: string }>(
           '/users/claim-request',
           {
-          phone: data.phone,
-          email: data.email,
+            phone: data.phone,
+            email: data.email,
           },
         );
 
@@ -72,14 +72,18 @@ const ClaimAccount: React.FC = () => {
             type: 'error',
             title: 'Não encontrado',
             description:
-              'Não encontramos este cliente cadastrado (ou já tem conta). Confirma o telemóvel ou pede ao salão para cadastrar primeiro.',
+              'Não encontrámos este registo de cliente (ou a conta já existe). Confirma o telemóvel ou pede ao salão para te registarem primeiro.',
           });
           return;
         }
 
         setPending({ phone: data.phone, email: data.email, password: data.password });
         setCode(['', '', '', '', '', '']);
-        addToast({ type: 'success', title: 'Código enviado', description: 'Enviámos um código (mock SMS) para o teu e-mail.' });
+        addToast({
+          type: 'success',
+          title: 'Código enviado',
+          description: 'Enviámos um código de verificação para o teu e-mail.',
+        });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
           const r = formRef.current;
@@ -89,7 +93,7 @@ const ClaimAccount: React.FC = () => {
         addToast({
           type: 'error',
           title: 'Erro',
-          description: (err as any)?.response?.data?.error ?? 'Não foi possível enviar o código. Tente novamente.',
+          description: (err as any)?.response?.data?.error ?? 'Não foi possível enviar o código. Tenta novamente.',
         });
       } finally {
         setSubmitting(false);
@@ -102,7 +106,7 @@ const ClaimAccount: React.FC = () => {
     if (!pending) return;
     const codeStr = code.join('');
     if (!/^\d{6}$/.test(codeStr)) {
-      addToast({ type: 'error', title: 'Código inválido', description: 'Digite os 6 dígitos.' });
+      addToast({ type: 'error', title: 'Código inválido', description: 'Indica os 6 dígitos.' });
       return;
     }
     try {
@@ -113,7 +117,7 @@ const ClaimAccount: React.FC = () => {
         code: codeStr,
         password: pending.password,
       });
-      addToast({ type: 'success', title: 'Conta criada', description: 'Já pode iniciar sessão.' });
+      addToast({ type: 'success', title: 'Conta criada', description: 'Já podes iniciar sessão.' });
       history.push('/');
     } catch (err) {
       addToast({
@@ -131,12 +135,20 @@ const ClaimAccount: React.FC = () => {
       title="Concluir registo"
       backgroundImage={signUpBackgroundImg}
       animationFrom="right"
+      authLogo="signup"
     >
       <Form ref={formRef} onSubmit={onSubmit} initialData={initialData}>
         <h1>Concluir registo</h1>
 
         <Input name="phone" icon={FiPhone} placeholder="Telemóvel" />
-        <Input name="email" icon={FiMail} placeholder="E-mail" />
+        <Input
+          name="email"
+          icon={FiMail}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="E-mail"
+        />
         <Input
           name="password"
           icon={FiLock}
@@ -156,30 +168,30 @@ const ClaimAccount: React.FC = () => {
 
       <Link to="/">
         <FiArrowLeft />
-        Voltar ao login
+        Voltar ao início de sessão
       </Link>
 
       {!!pending && (
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/65 p-6"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
           onClick={() => !submitting && setPending(null)}
         >
           <div
-            className="w-full max-w-[420px] rounded-[14px] border border-white/[0.08] bg-[var(--color-black-medium)] p-5"
+            className="w-full max-w-[420px] rounded-[14px] border border-[var(--color-input-border)] bg-[var(--color-white)] p-5 shadow-lg"
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="mb-2">Confirmar código</h2>
+            <h2 className="mb-2 text-[var(--color-text-white)]">Confirmar código</h2>
             <p className="mb-3.5 text-sm leading-snug text-[var(--color-light-gray)]">
-              Digite os 6 dígitos enviados (mock SMS) para o seu e-mail e clique em criar conta.
+              Introduz os seis dígitos que enviámos para o teu e-mail e clica em «Criar conta».
             </p>
 
             <div className="my-3.5 flex justify-center gap-2.5">
               {code.map((v, idx) => (
                 <input
                   key={String(idx)}
-                  className="h-[54px] w-[46px] rounded-xl border border-white/[0.12] bg-white/[0.04] text-center text-[22px] font-extrabold text-[var(--color-text-white)]"
+                  className="h-[54px] w-[46px] rounded-xl border border-[var(--color-input-border)] bg-[var(--color-inputs)] text-center text-[22px] font-extrabold text-[var(--color-text-white)]"
                   inputMode="numeric"
                   pattern="\d*"
                   maxLength={1}

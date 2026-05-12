@@ -1,6 +1,7 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from '../generated/prisma/client.js';
 import CancellationMail from '../app/jobs/CancellationMail.js';
 import { prisma } from './prisma.js';
+import { log } from './logger.js';
 
 type JobHandler = {
   key: string;
@@ -13,7 +14,8 @@ const handlerByKey = new Map(handlers.map(h => [h.key, h]));
 
 function pollIntervalMs(): number {
   const n = Number(process.env.QUEUE_POLL_INTERVAL_MS);
-  return Number.isFinite(n) && n >= 200 ? n : 2000;
+  if (Number.isFinite(n) && n >= 200) return n;
+  return process.env.NODE_ENV === 'production' ? 10_000 : 2_000;
 }
 
 function defaultMaxAttempts(): number {
@@ -27,14 +29,35 @@ function backoffMsAfterFailure(attempts: number): number {
   return Math.min(2 ** exp * baseSeconds * 1000, 24 * 60 * 60 * 1000);
 }
 
+export function queueEnabled(): boolean {
+  const v = process.env.QUEUE_ENABLED?.toLowerCase().trim();
+  if (v === undefined) return true;
+  return v !== '0' && v !== 'false' && v !== 'no' && v !== 'off';
+}
+
 class Queue {
   private timer: ReturnType<typeof setTimeout> | null = null;
   private running = false;
   private started = false;
 
   async add(jobKey: string, data: object): Promise<void> {
+    if (!queueEnabled()) {
+      const handler = handlerByKey.get(jobKey);
+      if (!handler) {
+        log.error(`queue: (disabled) unknown job key "${jobKey}", dropping payload`);
+        return;
+      }
+      log.info(`queue: (disabled) running ${jobKey} inline`);
+      try {
+        await handler.handle({ data });
+        log.ready(`queue: (disabled) ${jobKey} inline ok`);
+      } catch (err) {
+        log.error(`queue: (disabled) ${jobKey} inline failed`, err);
+      }
+      return;
+    }
     const maxAttempts = defaultMaxAttempts();
-    await prisma.job.create({
+    const job = await prisma.job.create({
       data: {
         jobKey,
         payload: data as Prisma.InputJsonValue,
@@ -43,11 +66,18 @@ class Queue {
         runAt: new Date(),
       },
     });
+    log.info(`queue: enqueued #${job.id} key=${jobKey}`);
   }
 
   start(): void {
     if (this.started) return;
+    if (!queueEnabled()) {
+      log.warn('queue: worker disabled (QUEUE_ENABLED=0). Jobs run inline on Queue.add().');
+      this.started = true;
+      return;
+    }
     this.started = true;
+    log.ready(`queue: worker started (poll=${pollIntervalMs()}ms, maxAttempts=${defaultMaxAttempts()})`);
     void this.scheduleTick();
   }
 
@@ -68,6 +98,7 @@ class Queue {
 
       const handler = handlerByKey.get(job.jobKey);
       if (!handler) {
+        log.error(`queue: unknown job key "${job.jobKey}" (job #${job.id})`);
         await prisma.job.update({
           where: { id: job.id },
           data: {
@@ -79,14 +110,18 @@ class Queue {
         return;
       }
 
+      log.info(`queue: processing #${job.id} key=${job.jobKey} attempt=${job.attempts}`);
+      const startedAt = Date.now();
       try {
         await handler.handle({ data: job.payload });
         await prisma.job.delete({ where: { id: job.id } });
+        log.ready(`queue: completed #${job.id} in ${Date.now() - startedAt}ms`);
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err);
         const attempts = job.attempts;
         if (attempts < job.maxAttempts) {
           const runAt = new Date(Date.now() + backoffMsAfterFailure(attempts));
+          log.warn(`queue: failed #${job.id} (attempt ${attempts}/${job.maxAttempts}) - retry at ${runAt.toISOString()}: ${message}`);
           await prisma.job.update({
             where: { id: job.id },
             data: {
@@ -97,6 +132,7 @@ class Queue {
             },
           });
         } else {
+          log.error(`queue: gave up on #${job.id} after ${attempts} attempts: ${message}`);
           await prisma.job.update({
             where: { id: job.id },
             data: {
@@ -108,7 +144,17 @@ class Queue {
         }
       }
     } catch (e) {
-      console.error('[BeautyOn] Queue tick error:', e);
+      const msg = e instanceof Error ? e.message : String(e);
+      const transient =
+        msg.includes('timer has gone away') ||
+        msg.includes("Can't reach database server") ||
+        msg.includes('Connection refused') ||
+        msg.includes('pool_timeout');
+      if (transient) {
+        log.warn(`queue: transient tick error (will retry next tick): ${msg.split('\n')[0]}`);
+      } else {
+        log.error('queue: tick error', e);
+      }
     } finally {
       this.running = false;
     }

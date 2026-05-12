@@ -19,7 +19,7 @@ const ToastContainer: React.FunctionComponent<ToastContainerProps> = ({
     },
   );
   return (
-    <div className="absolute right-0 top-0 overflow-hidden p-[1.875rem]">
+    <div className="pointer-events-none absolute right-0 top-0 z-[90] overflow-visible p-[1.875rem]">
       {messagesWithTransitions.map(({ item, key, props }) => (
         <Toast key={key} style={props} message={item} />
       ))}

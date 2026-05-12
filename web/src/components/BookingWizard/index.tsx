@@ -318,7 +318,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
         addToast({
           type: 'success',
           title: 'Marcação criada',
-          description: 'O profissional foi notificado.',
+          description: 'A profissional foi notificada.',
         });
         history.push('/book');
       } catch (err) {
@@ -327,7 +327,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           if (r) r.setErrors(getValidationErrors(err));
           return;
         }
-        const msg = (err as any)?.response?.data?.error ?? 'Tente novamente.';
+        const msg = (err as any)?.response?.data?.error ?? 'Tenta novamente.';
         addToast({
           type: 'error',
           title: 'Erro ao marcar',
@@ -389,7 +389,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           title: 'Erro ao marcar',
           description:
             (err as any)?.response?.data?.error ??
-            'Verifique os dados e tente novamente.',
+            'Verifica os dados e tenta novamente.',
         });
       }
     },
@@ -416,12 +416,14 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
         title: 'Marcação criada',
       });
       history.push('/client/appointments');
-    } catch {
+    } catch (err) {
+      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
       addToast({
         type: 'error',
         title: 'Erro ao marcar',
         description:
-          'Verifique se já tem avaliação (quando necessário) e tente outro horário.',
+          msg ??
+          'Confirma o horário ou pede à profissional para te marcar como Avaliada se o serviço for restrito.',
       });
     }
   }, [addToast, history, providerId, selectedSlot, serviceId]);
@@ -454,7 +456,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
         );
       }
     } catch (err) {
-      const description = (err as any)?.response?.data?.error ?? 'Tente outro horário.';
+      const description = (err as any)?.response?.data?.error ?? 'Tenta outro horário.';
       addToast({
         type: 'error',
         title: 'Não foi possível remarcar',
@@ -539,24 +541,24 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           : 'min-h-screen bg-[var(--color-background)]'
       }
     >
-      <header className="flex shrink-0 items-center gap-4 bg-[var(--color-black-medium)] px-6 py-6">
+      <header className="flex shrink-0 items-center gap-4 bg-[var(--color-header-bg)] px-6 py-6">
         {isModal && onRequestClose ? (
           <button
             type="button"
             onClick={onRequestClose}
-            className="flex items-center text-2xl leading-none text-[var(--color-light-gray)] hover:text-[var(--color-primary)]"
+            className="flex items-center text-2xl leading-none text-[var(--color-header-link-muted)] hover:text-[var(--color-warm-light)]"
           >
             ‹
           </button>
         ) : (
           <Link
             to={backLink}
-            className="flex items-center text-2xl leading-none text-[var(--color-light-gray)] hover:text-[var(--color-primary)]"
+            className="flex items-center text-2xl leading-none text-[var(--color-header-link-muted)] hover:text-[var(--color-warm-light)]"
           >
             ‹
           </Link>
         )}
-        <span className="flex-1 text-xl font-medium text-[var(--color-white)]">
+        <span className="flex-1 text-xl font-medium text-[var(--color-header-text)]">
           {headerTitle}
         </span>
         {!!profileAvatar && (
@@ -578,8 +580,8 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
                 className={cn(
                   'flex shrink-0 items-center gap-2 rounded-[10px] border-0 px-4 py-2 text-base hover:brightness-105',
                   p.id === providerId
-                    ? 'bg-[var(--color-primary)] text-[var(--color-inputs)]'
-                    : 'bg-[var(--color-shape)] text-[var(--color-white)]',
+                    ? 'bg-[var(--color-primary)] text-[var(--color-header-text)]'
+                    : 'bg-[var(--color-shape)] text-[var(--color-text-white)]',
                 )}
                 onClick={() => selectProvider(p.id)}
               >
@@ -594,7 +596,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           </div>
         )}
 
-        <h2 className="mx-6 mb-6 mt-0 text-2xl font-medium text-[var(--color-white)]">
+        <h2 className="mx-6 mb-6 mt-0 text-2xl font-medium  pt-4 text-[var(--color-text-white)]">
           Serviço
         </h2>
         <div className="-webkit-overflow-scrolling-touch flex gap-4 overflow-x-auto px-6 pb-6 scrollbar-thin">
@@ -610,8 +612,8 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
                 className={cn(
                   'flex shrink-0 items-center gap-2 rounded-[10px] border-0 px-4 py-2 text-base hover:brightness-105',
                   serviceId === s.id
-                    ? 'bg-[var(--color-primary)] text-[var(--color-inputs)]'
-                    : 'bg-[var(--color-shape)] text-[var(--color-white)]',
+                    ? 'bg-[var(--color-primary)] text-[var(--color-header-text)]'
+                    : 'bg-[var(--color-shape)] text-[var(--color-text-white)]',
                   blocked && 'cursor-not-allowed opacity-50',
                 )}
                 onClick={() => {
@@ -619,9 +621,9 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
                   if (requiresEvalBlocked(s)) {
                     addToast({
                       type: 'info',
-                      title: 'Requer avaliação',
+                      title: 'Serviço para clientes avaliadas',
                       description:
-                        'Este serviço só pode ser marcado após uma avaliação. Apenas o profissional pode marcar, a menos que o cliente esteja como “Avaliado”.',
+                        'Só a tua profissional marca este serviço por ti, ou tu depois de ela te marcar como Avaliada na lista de clientes.',
                     });
                     return;
                   }
@@ -636,8 +638,9 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
 
         {!serviceById?.is_evaluation && serviceById?.requires_prior_evaluation && (
           <p className="mx-6 mb-4 text-sm text-[var(--color-light-gray)]">
-            Este serviço requer avaliação prévia. Apenas o profissional pode marcar, a menos
-            que o cliente esteja como “Avaliado”.
+            {isProviderForClient
+              ? 'Este serviço é restrito: as tuas clientes só o marcam sozinhas depois de as marcares como Avaliadas. Tu podes marcar sempre.'
+              : 'Este serviço é restrito: só a tua profissional marca por ti, ou tu depois de te marcar como Avaliada na lista de clientes dela.'}
           </p>
         )}
         {services.length === 0 && (
@@ -646,7 +649,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           </p>
         )}
 
-        <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-white)]">
+        <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-text-white)]">
           Escolha a data
         </h2>
         <DatePickerField
@@ -656,7 +659,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
         />
 
         <div className="pt-2">
-          <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-white)]">
+          <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-text-white)]">
             Escolha o horário
           </h2>
 
@@ -685,8 +688,8 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
                   'shrink-0 rounded-[10px] border-0 px-3 py-3 text-base',
                   s.available ? 'cursor-pointer' : 'cursor-not-allowed opacity-35',
                   selectedSlot?.value === s.value
-                    ? 'bg-[var(--color-primary)] text-[var(--color-inputs)]'
-                    : 'bg-[var(--color-shape)] text-[var(--color-white)]',
+                    ? 'bg-[var(--color-primary)] text-[var(--color-header-text)]'
+                    : 'bg-[var(--color-shape)] text-[var(--color-text-white)]',
                 )}
                 onClick={() => s.available && setSelectedSlot(s)}
               >
@@ -706,8 +709,8 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
                   'shrink-0 rounded-[10px] border-0 px-3 py-3 text-base',
                   s.available ? 'cursor-pointer' : 'cursor-not-allowed opacity-35',
                   selectedSlot?.value === s.value
-                    ? 'bg-[var(--color-primary)] text-[var(--color-inputs)]'
-                    : 'bg-[var(--color-shape)] text-[var(--color-white)]',
+                    ? 'bg-[var(--color-primary)] text-[var(--color-header-text)]'
+                    : 'bg-[var(--color-shape)] text-[var(--color-text-white)]',
                 )}
                 onClick={() => s.available && setSelectedSlot(s)}
               >
@@ -725,7 +728,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
               onClick={handleRescheduleSubmit}
               className={cn(
                 'block h-[50px] w-full rounded-[10px] border-0 text-lg font-medium',
-                'bg-[var(--color-primary)] text-[var(--color-inputs)] hover:brightness-105',
+                'bg-[var(--color-primary)] text-[var(--color-header-text)] hover:brightness-105',
                 agendarDisabled && 'cursor-not-allowed opacity-50',
               )}
             >
@@ -747,7 +750,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           </div>
         ) : isProviderForClient ? (
           <Form ref={formRef} onSubmit={handleProviderForClientSubmit}>
-            <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-white)]">
+            <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-text-white)]">
               Dados da cliente
             </h2>
             <div className="flex max-w-[400px] flex-wrap items-center gap-3 px-6 pb-6 pt-2">
@@ -759,7 +762,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
               disabled={agendarDisabled}
               className={cn(
                 'mx-6 mb-6 mt-2 block h-[50px] w-[calc(100%-48px)] max-w-[640px] rounded-[10px] border-0 text-lg font-medium',
-                'bg-[var(--color-primary)] text-[var(--color-inputs)] hover:brightness-105',
+                'bg-[var(--color-primary)] text-[var(--color-header-text)] hover:brightness-105',
                 agendarDisabled && 'cursor-not-allowed opacity-50',
               )}
             >
@@ -768,8 +771,8 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
           </Form>
         ) : guestModeEffective ? (
           <Form ref={formRef} onSubmit={handleGuestSubmit}>
-            <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-white)]">
-              Os seus dados
+            <h2 className="mx-6 mb-6 text-2xl font-medium text-[var(--color-text-white)]">
+              Os teus dados
             </h2>
             <div className="flex max-w-[400px] flex-wrap items-center gap-3 px-6 pb-6 pt-2">
               <Input name="guest_name" placeholder="Nome completo" />
@@ -780,7 +783,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
               disabled={agendarDisabled}
               className={cn(
                 'mx-6 mb-6 mt-2 block h-[50px] w-[calc(100%-48px)] max-w-[640px] rounded-[10px] border-0 text-lg font-medium',
-                'bg-[var(--color-primary)] text-[var(--color-inputs)] hover:brightness-105',
+                'bg-[var(--color-primary)] text-[var(--color-header-text)] hover:brightness-105',
                 agendarDisabled && 'cursor-not-allowed opacity-50',
               )}
             >
@@ -794,7 +797,7 @@ const BookingWizard: React.FC<BookingWizardProps> = ({
             onClick={handleAuthSubmit}
             className={cn(
               'mx-6 mb-6 mt-2 block h-[50px] w-[calc(100%-48px)] max-w-[640px] rounded-[10px] border-0 text-lg font-medium',
-              'bg-[var(--color-primary)] text-[var(--color-inputs)] hover:brightness-105',
+              'bg-[var(--color-primary)] text-[var(--color-header-text)] hover:brightness-105',
               agendarDisabled && 'cursor-not-allowed opacity-50',
             )}
           >

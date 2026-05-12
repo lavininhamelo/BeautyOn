@@ -48,7 +48,7 @@ describe('SignIn Page', () => {
 
     const { getByPlaceholderText, getByRole } = render(<SignIn />);
 
-    const emailField = getByPlaceholderText('Email');
+    const emailField = getByPlaceholderText('E-mail');
     const passwordField = getByPlaceholderText('Palavra-passe');
     const buttonElement = getByRole('button', { name: 'Iniciar sessão' });
 
@@ -65,7 +65,7 @@ describe('SignIn Page', () => {
   it('should not be able to sign in with invalid credentials', async () => {
     const { getByPlaceholderText, getByRole } = render(<SignIn />);
 
-    const emailField = getByPlaceholderText('Email');
+    const emailField = getByPlaceholderText('E-mail');
     const passwordField = getByPlaceholderText('Palavra-passe');
     const buttonElement = getByRole('button', { name: 'Iniciar sessão' });
 
@@ -86,7 +86,7 @@ describe('SignIn Page', () => {
 
     const { getByPlaceholderText, getByRole } = render(<SignIn />);
 
-    const emailField = getByPlaceholderText('Email');
+    const emailField = getByPlaceholderText('E-mail');
     const passwordField = getByPlaceholderText('Palavra-passe');
     const buttonElement = getByRole('button', { name: 'Iniciar sessão' });
 

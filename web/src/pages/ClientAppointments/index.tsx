@@ -160,7 +160,7 @@ const ClientAppointments: React.FC = () => {
                   <strong className="mb-2 block text-[17px]">
                     {a.service?.name ?? 'Serviço'}
                   </strong>
-                  <span className="mb-1.5 block text-[15px] text-[var(--color-white)]">
+                  <span className="mb-1.5 block text-[15px] text-[var(--color-text-white)]">
                     {a.provider.name}
                   </span>
                   <span className="mb-1 block text-sm leading-snug text-[var(--color-light-gray)]">
@@ -242,7 +242,7 @@ const ClientAppointments: React.FC = () => {
                   <strong className="mb-2 block text-[17px]">
                     {a.service?.name ?? 'Serviço'}
                   </strong>
-                  <span className="mb-1.5 block text-[15px] text-[var(--color-white)]">
+                  <span className="mb-1.5 block text-[15px] text-[var(--color-text-white)]">
                     {a.provider.name}
                   </span>
                   <span className="mb-1 block text-sm leading-snug text-[var(--color-light-gray)]">

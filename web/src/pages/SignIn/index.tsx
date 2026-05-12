@@ -29,8 +29,8 @@ const SignIn: React.FunctionComponent = () => {
         if (r) r.setErrors({});
         const schema = Yup.object().shape({
           email: Yup.string()
-            .required('Email obrigatório')
-            .email('Email inválido'),
+            .required('E-mail obrigatório')
+            .email('E-mail inválido'),
           password: Yup.string().required('Palavra-passe obrigatória'),
         });
         await schema.validate(data, {
@@ -52,9 +52,8 @@ const SignIn: React.FunctionComponent = () => {
         }
         addToast({
           type: 'error',
-          title: 'Authentication Error',
-          description:
-            'Username ou login inválidos, por favor verifique as suas credenciais.',
+          title: 'Erro ao iniciar sessão',
+          description: 'E-mail ou palavra-passe incorretos. Verifica as tuas credenciais.',
         });
       }
     },
@@ -69,7 +68,14 @@ const SignIn: React.FunctionComponent = () => {
       <Form ref={formRef} onSubmit={handleFormSubmit}>
         <h1>Iniciar sessão</h1>
 
-        <Input name="email" icon={FiMail} type="text" placeholder="Email" />
+        <Input
+          name="email"
+          icon={FiMail}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="E-mail"
+        />
         <Input
           name="password"
           icon={FiLock}
@@ -77,7 +83,7 @@ const SignIn: React.FunctionComponent = () => {
           placeholder="Palavra-passe"
         />
         <Button type="submit">Iniciar sessão</Button>
-        <Link to="/forgot-password">Esqueceu a sua palavra-passe?</Link>
+        <Link to="/forgot-password">Esqueceste-te da palavra-passe?</Link>
       </Form>
       <Link to="/signup">
         <FiLogIn />

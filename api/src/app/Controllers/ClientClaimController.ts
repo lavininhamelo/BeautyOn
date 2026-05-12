@@ -55,15 +55,18 @@ class ClientClaimController {
       },
     });
 
-    try {
-      await Mail.sendMail({
-        to: email,
-        subject: 'BeautyOn — código para concluir registo',
-        text: `Olá ${client.name},\n\nO teu código (mock SMS) para concluir o registo é: ${code}\n\nEste código expira em 1 hora.\n\nSe não pediste isto, ignora este email.\n`,
-      });
-    } catch (err) {
+    Mail.sendMail({
+      to: email,
+      subject: `BeautyOn — código ${code}`,
+      template: 'claim_code',
+      context: {
+        name: client.name,
+        code,
+        expiresMinutes: 60,
+      },
+    }).catch(err => {
       console.error('client claim mail failed', err);
-    }
+    });
 
     const debug = process.env.CLAIM_DEBUG_CODE === 'true';
     return debug

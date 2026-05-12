@@ -6,7 +6,7 @@ import {
   zonedDayEndUtc,
   zonedDayStartUtc,
 } from '../../lib/bookingDates.js';
-import { fileUrlForPath } from '../../lib/fileUrl.js';
+import { fileUrlForId } from '../../lib/fileUrl.js';
 import { prisma } from '../../lib/prisma.js';
 
 class ScheduleController {
@@ -41,7 +41,7 @@ class ScheduleController {
           select: {
             name: true,
             phone: true,
-            avatar: { select: { path: true } },
+            avatar: { select: { id: true } },
           },
         },
         providerService: { select: { id: true, name: true } },
@@ -60,7 +60,7 @@ class ScheduleController {
         name: a.user?.name ?? a.guestName ?? 'Cliente',
         phone: a.user?.phone ?? a.guestPhone ?? null,
         is_guest: a.userId == null,
-        avatar_url: a.user?.avatar?.path ? fileUrlForPath(a.user.avatar.path) : undefined,
+        avatar_url: a.user?.avatar ? fileUrlForId(a.user.avatar.id) : undefined,
       },
     }));
 

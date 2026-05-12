@@ -1,7 +1,15 @@
-<strong>Olá. {{ provider }}</strong>
-<p>Houve um cancelamento de horário, confira os detalhes abaixo:</p>
-<p>
-  <strong>Cliente: {{ user }}</strong> </br />
-  <strong>Data/Hora: {{ date }}</strong> </br />
-  <small>Data/Hora: O horário está novamente disponível para novos agendamentos.</small> </br />
-</p>
+<p style="margin:0 0 12px 0;font-size:17px;">Olá <strong>{{provider}}</strong>,</p>
+<p style="margin:0 0 24px 0;color:#4f4a4d;">Houve um cancelamento de horário. Confira os detalhes abaixo.</p>
+
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background:#fbf4f8;border:1px solid #f0e6ec;border-radius:10px;margin:0 0 24px 0;">
+  <tr>
+    <td style="padding:18px 22px;">
+      <p style="margin:0 0 4px 0;font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:#9a8794;">Cliente</p>
+      <p style="margin:0 0 16px 0;font-size:16px;font-weight:600;color:#1f1f1f;">{{user}}</p>
+      <p style="margin:0 0 4px 0;font-size:12px;text-transform:uppercase;letter-spacing:0.6px;color:#9a8794;">Data e hora</p>
+      <p style="margin:0;font-size:16px;font-weight:600;color:#1f1f1f;">{{date}}</p>
+    </td>
+  </tr>
+</table>
+
+<p style="margin:0;font-size:13px;color:#6b6b6b;">O horário está novamente disponível para novos agendamentos.</p>

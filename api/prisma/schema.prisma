@@ -1,5 +1,9 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client"
+  engineType = "client"
+  output     = "../src/generated/prisma"
+  runtime    = "nodejs"
+  moduleFormat = "esm"
 }
 
 datasource db {
@@ -83,9 +87,11 @@ model ProviderClient {
 }
 
 model File {
-  id        Int     @id @default(autoincrement())
+  id        Int      @id @default(autoincrement())
   name      String
-  path      String  @unique
+  path      String?  @unique @map("path")
+  mimeType  String   @default("application/octet-stream") @map("mime_type")
+  data      Bytes?   @map("data")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -100,6 +106,7 @@ model ProviderService {
   providerId       Int      @map("provider_id")
   name             String
   durationMinutes  Int      @map("duration_minutes")
+  priceCents       Int      @default(0) @map("price_cents")
   isEvaluation     Boolean  @default(false) @map("is_evaluation")
   requiresPriorEvaluation Boolean @default(false) @map("requires_prior_evaluation")
   sortOrder        Int      @default(0) @map("sort_order")

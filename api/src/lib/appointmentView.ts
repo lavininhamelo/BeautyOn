@@ -1,6 +1,6 @@
 import { isBefore, subHours } from 'date-fns';
-import type { File } from '@prisma/client';
-import { fileUrlForPath } from './fileUrl.js';
+import type { File } from '../generated/prisma/client.js';
+import { fileUrlForId } from './fileUrl.js';
 
 type ListRow = {
   id: number;
@@ -11,11 +11,12 @@ type ListRow = {
     id: number;
     name: string;
     durationMinutes: number;
+    priceCents: number;
   } | null;
   provider: {
     id: number;
     name: string;
-    avatar: Pick<File, 'id' | 'path'> | null;
+    avatar: Pick<File, 'id'> | null;
   } | null;
 };
 
@@ -35,6 +36,7 @@ export function appointmentListItem(row: ListRow) {
           id: row.providerService.id,
           name: row.providerService.name,
           duration_minutes: row.providerService.durationMinutes,
+          price_cents: row.providerService.priceCents,
         }
       : null,
     provider: {
@@ -43,8 +45,7 @@ export function appointmentListItem(row: ListRow) {
       avatar: row.provider.avatar
         ? {
             id: row.provider.avatar.id,
-            path: row.provider.avatar.path,
-            url: fileUrlForPath(row.provider.avatar.path),
+            url: fileUrlForId(row.provider.avatar.id),
           }
         : null,
     },

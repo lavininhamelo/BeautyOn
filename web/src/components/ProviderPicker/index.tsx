@@ -68,7 +68,7 @@ const ProviderPicker: React.FC<ProviderPickerProps> = ({
             ‹
           </Link>
         )}
-        <h1 className="m-0 text-[28px] text-[var(--color-white)]">{title}</h1>
+        <h1 className="m-0 text-[28px] text-[var(--color-text-white)]">{title}</h1>
       </header>
       <div className="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6">
         {providers.map(p => {
@@ -83,7 +83,7 @@ const ProviderPicker: React.FC<ProviderPickerProps> = ({
                 src={p.avatar?.url}
                 style={{ width: '128px', height: '128px', borderRadius: '50%' }}
               />
-              <strong className="text-center text-[var(--color-white)]">
+              <strong className="text-center text-[var(--color-text-white)]">
                 {p.name}
               </strong>
             </div>

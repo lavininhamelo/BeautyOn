@@ -1,10 +1,10 @@
-export function fileUrlForPath(path: string): string {
-  const base = process.env.APP_URL ?? '';
-  return `${base}/files/${path}`;
+export function fileUrlForId(id: number): string {
+  const base = process.env.APP_URL?.trim().replace(/\/+$/, '') ?? '';
+  return `${base}/files/${id}`;
 }
 
-export function withFileUrl<T extends { id: number; path: string; name: string }>(
+export function withFileUrl<T extends { id: number; name: string }>(
   file: T
 ): T & { url: string } {
-  return { ...file, url: fileUrlForPath(file.path) };
+  return { ...file, url: fileUrlForId(file.id) };
 }

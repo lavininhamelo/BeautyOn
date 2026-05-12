@@ -11,10 +11,10 @@ import {
   startOfMonth,
   startOfWeek,
 } from 'date-fns';
-import enUS from 'date-fns/locale/en-US';
+import pt from 'date-fns/locale/pt';
 import moment from 'moment';
 import 'moment/locale/pt';
-import type { CalendarProps } from 'react-big-calendar';
+import type { CalendarProps, ToolbarProps } from 'react-big-calendar';
 import {
   momentLocalizer,
   SlotInfo,
@@ -26,6 +26,7 @@ import { FiClock } from 'react-icons/fi';
 import { Link, useHistory } from 'react-router-dom';
 
 import ShadcnBigCalendar from '../../components/shadcn-big-calendar/shadcn-big-calendar';
+import ProviderCalendarToolbar from '../../components/ProviderCalendarToolbar';
 import BookingWizard from '../../components/BookingWizard';
 import { Modal } from '../../components/ui/modal';
 import { useAuth } from '../../hooks/auth';
@@ -83,8 +84,8 @@ function mapApiToRow(a: ApiAppointment): DashboardRow {
   return {
     id: a.id,
     date: String(a.date),
-    hourFormatted: format(parseISO(String(a.date)), 'hh:mm a', {
-      locale: enUS,
+    hourFormatted: format(parseISO(String(a.date)), 'HH:mm', {
+      locale: pt,
     }),
     clientName: a.user.name,
     clientAvatar: a.user.avatar_url,
@@ -138,7 +139,7 @@ function daysToFetchForView(view: View, anchor: Date): Date[] {
 }
 
 const selectCls =
-  'rounded-lg border border-[var(--color-hard-gray)] bg-[var(--color-primary)] px-2.5 py-1.5 text-xs text-[var(--color-white)]';
+  'rounded-lg border border-[var(--color-hard-gray)] bg-[var(--color-primary)] px-2.5 py-1.5 text-xs text-[var(--color-header-text)]';
 
 type RowProps = {
   row: DashboardRow;
@@ -154,7 +155,7 @@ const AppointmentRowBlock: React.FC<RowProps> = ({
   goToReschedule,
 }) => (
   <div className="mt-4 flex items-center gap-6 first:mt-0">
-    <span className="flex w-[110px] shrink-0 items-center text-[var(--color-white)]">
+    <span className="flex w-[110px] shrink-0 items-center text-[var(--color-text-white)]">
       <FiClock className="mr-2 text-[var(--color-primary)]" />
       {row.hourFormatted}
     </span>
@@ -214,8 +215,8 @@ const AppointmentRowBlock: React.FC<RowProps> = ({
 
 const calendarMessages = {
   allDay: 'Dia inteiro',
-  previous: 'Anterior',
-  next: 'Seguinte',
+  previous: 'Período anterior',
+  next: 'Período seguinte',
   today: 'Hoje',
   month: 'Mês',
   week: 'Semana',
@@ -523,11 +524,11 @@ const Dashboard: React.FC = () => {
     : 'reschedule-closed';
 
   const selectedDateAsText = useMemo(() => {
-    return format(selectedDate, "MMM do', 'yyyy", { locale: enUS });
+    return format(selectedDate, "d 'de' MMMM yyyy", { locale: pt });
   }, [selectedDate]);
 
-  const seletedWeekDayAsText = useMemo(() => {
-    return format(selectedDate, 'cccc', { locale: enUS });
+  const selectedWeekDayAsText = useMemo(() => {
+    return format(selectedDate, 'cccc', { locale: pt });
   }, [selectedDate]);
 
   const morningAppointments = useMemo(() => {
@@ -569,6 +570,11 @@ const Dashboard: React.FC = () => {
             views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
             view={calendarView}
             date={calendarDate}
+            components={{
+              toolbar: ProviderCalendarToolbar as React.ComponentType<
+                ToolbarProps<ProviderCalendarEvent>
+              >,
+            }}
             onNavigate={handleNavigate}
             onView={setCalendarView}
             events={calendarEvents}
@@ -590,8 +596,8 @@ const Dashboard: React.FC = () => {
         <div className="mt-12 min-w-0 flex-1">
           <h1 className="text-[35px]">Agenda</h1>
           <p className="mt-2 flex flex-wrap items-center font-medium text-[var(--color-primary)]">
-            {isToday(selectedDate) && <span>Hoje · </span>}
-            <span>{seletedWeekDayAsText}</span>
+            {isToday(selectedDate) && <span className="mr-1">Hoje · </span>}
+            <span className='capitalize'>{selectedWeekDayAsText}</span>
             <span className="flex items-center before:mx-2 before:h-3 before:w-px before:bg-[var(--color-primary)] before:content-['']">
               {selectedDateAsText}
             </span>

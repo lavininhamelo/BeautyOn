@@ -18,18 +18,18 @@ jest.mock('@unform/core', () => {
 describe('Input component', () => {
   it('should be able to render an input', () => {
     const { getByPlaceholderText } = render(
-      <Input name="email" placeholder="Email" />,
+      <Input name="email" placeholder="E-mail" />,
     );
 
-    expect(getByPlaceholderText('Email')).toBeTruthy();
+    expect(getByPlaceholderText('E-mail')).toBeTruthy();
   });
 
   it('should highlight the input on focus', async () => {
     const { getByPlaceholderText, getByTestId } = render(
-      <Input name="email" placeholder="Email" />,
+      <Input name="email" placeholder="E-mail" />,
     );
 
-    const inputElement = getByPlaceholderText('Email');
+    const inputElement = getByPlaceholderText('E-mail');
     const containerElement = getByTestId('input-container');
 
     fireEvent.focus(inputElement);
@@ -42,10 +42,10 @@ describe('Input component', () => {
 
   it('should not highlight the input when on blur', async () => {
     const { getByPlaceholderText, getByTestId } = render(
-      <Input name="email" placeholder="Email" />,
+      <Input name="email" placeholder="E-mail" />,
     );
 
-    const inputElement = getByPlaceholderText('Email');
+    const inputElement = getByPlaceholderText('E-mail');
     const containerElement = getByTestId('input-container');
 
     fireEvent.blur(inputElement);
@@ -59,10 +59,10 @@ describe('Input component', () => {
 
   it('should keep input border highlighted when field is filled', async () => {
     const { getByPlaceholderText, getByTestId } = render(
-      <Input name="email" placeholder="Email" />,
+      <Input name="email" placeholder="E-mail" />,
     );
 
-    const inputElement = getByPlaceholderText('Email');
+    const inputElement = getByPlaceholderText('E-mail');
     const containerElement = getByTestId('input-container');
 
     fireEvent.change(inputElement, {

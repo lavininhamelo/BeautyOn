@@ -22,7 +22,7 @@ import {
 import { conflictsWithAnyAppointment } from '../../lib/appointmentOverlap.js';
 import { prisma } from '../../lib/prisma.js';
 import { appointmentListItem } from '../../lib/appointmentView.js';
-import { fileUrlForPath } from '../../lib/fileUrl.js';
+import { fileUrlForId } from '../../lib/fileUrl.js';
 
 import CancellationMail from '../jobs/CancellationMail.js';
 import Queue from '../../lib/Queue.js';
@@ -50,6 +50,7 @@ type ValidatedBookingSlot = {
     name: string;
     isEvaluation: boolean;
     requiresPriorEvaluation: boolean;
+    priceCents: number;
   };
   ymd: string;
 };
@@ -117,6 +118,12 @@ class AppointmentController {
     date: string | Date;
     selfUserId: number | null;
     phoneNormalized?: string;
+    /**
+     * Quando a profissional marca em nome da cliente (`storeForClient`), não se exige
+     * linha em `provider_client_clearances`. Em auto-marcação ou convidado, serviços
+     * com `requires_prior_evaluation` exigem a cliente estar “Avaliada” (clearance).
+     */
+    enforceClientEvalClearance?: boolean;
   }): Promise<
     | { ok: true; data: ValidatedBookingSlot }
     | { ok: false; status: number; error: string }
@@ -142,6 +149,7 @@ class AppointmentController {
         durationMinutes: true,
         isEvaluation: true,
         requiresPriorEvaluation: true,
+        priceCents: true,
       },
     });
 
@@ -241,14 +249,31 @@ class AppointmentController {
       };
     }
 
-    if (service.requiresPriorEvaluation) {
-      let phoneNormalized = params.phoneNormalized;
+    const requiresPrior = service.requiresPriorEvaluation === true;
+    const mustCheckClientClearance = requiresPrior && params.enforceClientEvalClearance !== false;
+    if (mustCheckClientClearance) {
+      let phoneNormalized: string | undefined = params.phoneNormalized;
+      if (phoneNormalized) {
+        try {
+          phoneNormalized = normalizePhoneForStorage(phoneNormalized);
+        } catch {
+          phoneNormalized = undefined;
+        }
+      }
+
       if (!phoneNormalized && selfUserId) {
         const u = await prisma.user.findUnique({
           where: { id: selfUserId },
           select: { phone: true },
         });
-        phoneNormalized = u?.phone ?? undefined;
+        const raw = u?.phone ?? undefined;
+        if (raw) {
+          try {
+            phoneNormalized = normalizePhoneForStorage(raw);
+          } catch {
+            phoneNormalized = undefined;
+          }
+        }
       }
 
       if (!phoneNormalized) {
@@ -256,7 +281,7 @@ class AppointmentController {
           ok: false,
           status: 400,
           error:
-            'Este serviço requer avaliação prévia. Associa um telemóvel ao perfil (ou indica um telemóvel no agendamento).',
+            'Para este serviço precisas de telemóvel no perfil ou no agendamento, e de a profissional te marcar como Avaliada antes de marcares sozinha.',
         };
       }
 
@@ -274,7 +299,7 @@ class AppointmentController {
           ok: false,
           status: 400,
           error:
-            'Este serviço requer avaliação prévia com este profissional antes de poder ser marcado.',
+            'Este serviço só podes marcar depois de a profissional te marcar como Avaliada (lista de clientes). Ela também pode marcar por ti.',
         };
       }
     }
@@ -290,6 +315,7 @@ class AppointmentController {
           name: service.name,
           isEvaluation: service.isEvaluation,
           requiresPriorEvaluation: service.requiresPriorEvaluation,
+          priceCents: service.priceCents,
         },
         ymd,
       },
@@ -351,13 +377,14 @@ class AppointmentController {
               id: true,
               name: true,
               durationMinutes: true,
+              priceCents: true,
             },
           },
           provider: {
             select: {
               id: true,
               name: true,
-              avatar: { select: { id: true, path: true } },
+              avatar: { select: { id: true } },
             },
           },
         },
@@ -392,13 +419,14 @@ class AppointmentController {
             id: true,
             name: true,
             durationMinutes: true,
+            priceCents: true,
           },
         },
         provider: {
           select: {
             id: true,
             name: true,
-            avatar: { select: { id: true, path: true } },
+            avatar: { select: { id: true } },
           },
         },
       },
@@ -437,13 +465,14 @@ class AppointmentController {
             id: true,
             name: true,
             durationMinutes: true,
+            priceCents: true,
           },
         },
         provider: {
           select: {
             id: true,
             name: true,
-            avatar: { select: { id: true, path: true } },
+            avatar: { select: { id: true } },
           },
         },
       },
@@ -651,11 +680,17 @@ class AppointmentController {
     if (!me.phone) {
       return res.json({ has_clearance: false, reason: 'missing_phone' });
     }
+    let phoneKey: string;
+    try {
+      phoneKey = normalizePhoneForStorage(me.phone);
+    } catch {
+      return res.json({ has_clearance: false, reason: 'invalid_phone' });
+    }
     const row = await prisma.providerClientClearance.findUnique({
       where: {
         providerId_phoneNormalized: {
           providerId,
-          phoneNormalized: me.phone,
+          phoneNormalized: phoneKey,
         },
       },
       select: { id: true },
@@ -789,6 +824,7 @@ class AppointmentController {
       date: parsed.data.date,
       selfUserId: matchedUser?.id ?? null,
       phoneNormalized: phone,
+      enforceClientEvalClearance: false,
     });
     if (!v.ok) {
       return res.status(v.status).json({ error: v.error });
@@ -878,13 +914,13 @@ class AppointmentController {
         guestName: true,
         user: { select: { name: true } },
         providerService: {
-          select: { name: true, durationMinutes: true },
+          select: { name: true, durationMinutes: true, priceCents: true },
         },
         provider: {
           select: {
             id: true,
             name: true,
-            avatar: { select: { path: true } },
+            avatar: { select: { id: true } },
           },
         },
       },
@@ -903,13 +939,14 @@ class AppointmentController {
           ? {
               name: r.providerService.name,
               duration_minutes: r.providerService.durationMinutes,
+              price_cents: r.providerService.priceCents,
             }
           : null,
         provider: {
           id: r.provider.id,
           name: r.provider.name,
-          avatar_url: r.provider.avatar?.path
-            ? fileUrlForPath(r.provider.avatar.path)
+          avatar_url: r.provider.avatar
+            ? fileUrlForId(r.provider.avatar.id)
             : null,
         },
       }));

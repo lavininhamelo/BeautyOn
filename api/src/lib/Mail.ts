@@ -1,8 +1,20 @@
 import nodemailer from 'nodemailer';
 import { resolve } from 'path';
 import { readFile } from 'fs/promises';
+import { existsSync } from 'fs';
 import Handlebars from 'handlebars';
 import mailConfig from '../config/mail.js';
+import { projectRoot } from './paths.js';
+
+function resolveTemplatesDir(): string {
+  const candidates = [
+    resolve(projectRoot, 'src', 'app', 'Views', 'emails'),
+    resolve(projectRoot, 'dist', 'app', 'Views', 'emails'),
+    resolve(process.cwd(), 'api', 'src', 'app', 'Views', 'emails'),
+    resolve(process.cwd(), 'src', 'app', 'Views', 'emails'),
+  ];
+  return candidates.find(p => existsSync(p)) ?? candidates[0];
+}
 
 class Mail {
   private transporter: any;
@@ -15,10 +27,14 @@ class Mail {
       host,
       port,
       secure,
+      requireTLS: !secure,
       auth: auth.user ? auth : null,
+      connectionTimeout: 10_000,
+      greetingTimeout: 10_000,
+      socketTimeout: 15_000,
     } as import('nodemailer').TransportOptions);
 
-    this.templatesDir = resolve(process.cwd(), 'src', 'app', 'Views', 'emails');
+    this.templatesDir = resolveTemplatesDir();
     this.configureTemplates().catch(err => {
       console.error('Mail templates init failed', err);
     });

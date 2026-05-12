@@ -94,7 +94,7 @@ const ProviderClients: React.FC = () => {
       addToast({
         type: 'error',
         title: 'Não foi possível atualizar',
-        description: 'Verifique nome/telemóvel e tente novamente.',
+        description: 'Verifica o nome e o telemóvel e tenta novamente.',
       });
     }
   }, [addToast, cancelEdit, draftName, draftPhone, editingId, load]);
@@ -112,7 +112,7 @@ const ProviderClients: React.FC = () => {
         addToast({
           type: 'error',
           title: 'Não foi possível marcar',
-          description: (err as any)?.response?.data?.error ?? 'Tente novamente.',
+          description: (err as any)?.response?.data?.error ?? 'Tenta novamente.',
         });
       } finally {
         setMarkingId(current => (current === clientId ? null : current));
@@ -138,7 +138,7 @@ const ProviderClients: React.FC = () => {
         addToast({
           type: 'error',
           title: 'Não foi possível remover',
-          description: (err as any)?.response?.data?.error ?? 'Tente novamente.',
+          description: (err as any)?.response?.data?.error ?? 'Tenta novamente.',
         });
       } finally {
         setMarkingId(current => (current === clientId ? null : current));
@@ -152,10 +152,10 @@ const ProviderClients: React.FC = () => {
       <ProviderHeader />
 
       <main className="mx-auto mb-20 mt-12 max-w-[720px] px-6">
-        <section className="mb-6 rounded-[14px] border border-white/[0.06] bg-[var(--color-black-medium)] p-6">
-          <h1 className="mb-2 text-[28px]">Clientes</h1>
+        <section className="mb-6 rounded-[14px] border border-[var(--color-input-border)] bg-[var(--color-white)] p-6 shadow-sm">
+          <h1 className="mb-2 text-[28px] text-[var(--color-text-white)]">Clientes</h1>
           <p className="mb-[18px] text-[var(--color-light-gray)]">
-            Lista de clientes do salão associados à tua conta. Podes atualizar o nome e o telemóvel.
+            Lista de clientes do salão. Adicione ou altere as informações.
           </p>
 
           {loading && <p>A carregar…</p>}
@@ -165,7 +165,7 @@ const ProviderClients: React.FC = () => {
             <ul className="m-0 flex list-none flex-col gap-3 p-0">
               <li className="mb-3.5">
                 <input
-                  className="min-w-[240px] flex-1 rounded-xl border border-white/[0.10] bg-white/[0.04] px-3.5 py-3 text-[var(--color-text-white)] placeholder:text-[var(--color-hard-gray)] focus:border-[var(--color-primary)] focus:outline-none"
+                  className="min-w-[240px] w-full flex-1 rounded-xl border border-[var(--color-input-border)] bg-[var(--color-inputs)] px-3.5 py-3 text-[var(--color-text-white)] placeholder:text-[var(--color-hard-gray)] focus:border-[var(--color-primary)] focus:outline-none"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="Pesquisar por nome…"
@@ -175,7 +175,7 @@ const ProviderClients: React.FC = () => {
               {filteredRows.map(r => (
                 <li
                   key={r.id}
-                  className="relative flex flex-wrap items-start justify-between gap-3 rounded-[14px] border border-white/[0.06] bg-[var(--color-shape)] p-4 pr-[130px] transition-[transform,border-color,background] duration-150 ease-out hover:-translate-y-px hover:border-white/[0.12] hover:bg-white/[0.04]"
+                  className="relative flex flex-wrap items-start justify-between gap-3 rounded-[14px] border border-[var(--color-input-border)]  p-4 pr-[130px] transition-[transform,border-color,background] duration-150 ease-out bg-[var(--color-inputs)] hover:border-[var(--color-warm-mid)]"
                 >
                   <label
                     className={cn(
@@ -183,7 +183,7 @@ const ProviderClients: React.FC = () => {
                       markingId === r.id ? 'cursor-not-allowed' : 'cursor-pointer',
                     )}
                   >
-                    <span className="text-xs font-extrabold text-[var(--color-light-gray)]">Avaliada</span>
+                    <span className="text-xs font-extrabold text-[var(--color-primary)]">Avaliada</span>
                     <input
                       type="checkbox"
                       className="pointer-events-none absolute opacity-0"
@@ -193,21 +193,21 @@ const ProviderClients: React.FC = () => {
                     />
                     <div
                       className={cn(
-                        'relative h-[26px] w-[44px] rounded-full border border-white/[0.12] p-0.5 transition-[background,opacity] duration-150 ease-out',
-                        r.has_clearance ? 'bg-[rgba(228,160,188,0.35)]' : 'bg-white/[0.06]',
+                        'relative h-[26px] w-[44px] rounded-full border border-[var(--color-input-border)] p-0.5 transition-[background,opacity] duration-150 ease-out',
+                        r.has_clearance ? 'bg-[var(--color-warm-light)]/65' : 'bg-[var(--color-white)]',
                         markingId === r.id && 'opacity-65',
                       )}
                     >
                       <span
                         className={cn(
-                          'block h-5 w-5 rounded-full bg-[var(--color-white)] transition-transform duration-150 ease-out',
+                          'block h-5 w-5 shrink-0 rounded-full border border-[var(--color-primary-darken)] bg-[var(--color-primary)] shadow-md transition-transform duration-150 ease-out',
                           r.has_clearance ? 'translate-x-[18px]' : 'translate-x-0',
                         )}
                       />
                     </div>
                   </label>
                   <div className="min-w-[240px] flex-1">
-                    <strong className="mb-1.5 block text-base tracking-wide">{r.name}</strong>
+                    <strong className="mb-1.5 block text-base tracking-wide text-[var(--color-text-white)]">{r.name}</strong>
                     <span className="mb-0 block text-[13px] leading-snug text-[var(--color-light-gray)]">
                       {r.phone ?? 'Sem telemóvel'}
                     </span>
@@ -218,21 +218,21 @@ const ProviderClients: React.FC = () => {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       type="button"
-                      className="cursor-pointer rounded-[10px] border border-white/[0.10] bg-white/[0.02] px-3 py-2 text-sm font-bold text-[var(--color-text-white)] hover:bg-white/[0.06] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-65"
+                      className="cursor-pointer rounded-[10px] border border-[var(--color-input-border)] bg-[var(--color-white)] px-3 py-2 text-sm font-bold text-[var(--color-text-white)] hover:bg-[var(--color-inputs)] disabled:cursor-not-allowed disabled:opacity-65"
                       onClick={() => startEdit(r)}
                     >
                       Editar Cliente
                     </button>
                     <button
                       type="button"
-                      className="cursor-pointer rounded-[10px] border border-white/[0.10] bg-white/[0.02] px-3 py-2 text-sm font-bold text-[var(--color-text-white)] hover:bg-white/[0.06] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-65"
+                      className="cursor-pointer rounded-[10px] border border-[var(--color-input-border)] bg-[var(--color-white)] px-3 py-2 text-sm font-bold text-[var(--color-text-white)] hover:bg-[var(--color-inputs)] disabled:cursor-not-allowed disabled:opacity-65"
                       onClick={() => history.push(`/provider/clients/${r.id}/history`)}
                     >
                       Atendimentos
                     </button>
                     <button
                       type="button"
-                      className="cursor-pointer rounded-[10px] border border-white/[0.10] bg-white/[0.02] px-3 py-2 text-sm font-bold text-[var(--color-text-white)] hover:bg-white/[0.06] hover:border-white/[0.16] disabled:cursor-not-allowed disabled:opacity-65"
+                      className="cursor-pointer rounded-[10px] border border-[var(--color-input-border)] bg-[var(--color-white)] px-3 py-2 text-sm font-bold text-[var(--color-text-white)] hover:bg-[var(--color-inputs)] disabled:cursor-not-allowed disabled:opacity-65"
                       onClick={() => history.push(`/provider/clients/${r.id}/timeline`)}
                     >
                       Histórico

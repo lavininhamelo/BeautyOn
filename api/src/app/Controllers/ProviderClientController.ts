@@ -2,8 +2,17 @@ import { z } from 'zod';
 import type { Request, Response } from 'express';
 
 import { prisma } from '../../lib/prisma.js';
-import { fileUrlForPath } from '../../lib/fileUrl.js';
+import { fileUrlForId } from '../../lib/fileUrl.js';
 import { normalizePhoneForStorage } from '../../lib/phoneNormalize.js';
+
+function tryNormalizePhone(input: string | null | undefined): string | null {
+  if (!input) return null;
+  try {
+    return normalizePhoneForStorage(input);
+  } catch {
+    return null;
+  }
+}
 
 class ProviderClientController {
   private async requireProvider(req: Request, res: Response): Promise<boolean> {
@@ -31,17 +40,24 @@ class ProviderClientController {
       }),
     ]);
 
-    const cleared = new Set(clearances.map(c => c.phoneNormalized));
+    const cleared = new Set(
+      clearances
+        .map(c => tryNormalizePhone(c.phoneNormalized))
+        .filter((p): p is string => p != null),
+    );
 
     return res.json(
-      list.map(c => ({
-        id: c.id,
-        name: c.name,
-        email: c.email,
-        phone: c.phone,
-        created_at: c.createdAt.toISOString(),
-        has_clearance: !!c.phone && cleared.has(c.phone),
-      })),
+      list.map(c => {
+        const phoneKey = tryNormalizePhone(c.phone);
+        return {
+          id: c.id,
+          name: c.name,
+          email: c.email,
+          phone: c.phone,
+          created_at: c.createdAt.toISOString(),
+          has_clearance: !!phoneKey && cleared.has(phoneKey),
+        };
+      }),
     );
   }
 
@@ -307,7 +323,7 @@ class ProviderClientController {
                 id: true,
                 caption: true,
                 sortOrder: true,
-                file: { select: { id: true, name: true, path: true } },
+                file: { select: { id: true, name: true } },
               },
             },
           },
@@ -345,8 +361,7 @@ class ProviderClientController {
                 file: {
                   id: p.file.id,
                   name: p.file.name,
-                  path: p.file.path,
-                  url: fileUrlForPath(p.file.path),
+                  url: fileUrlForId(p.file.id),
                 },
               })),
             }
@@ -378,16 +393,21 @@ class ProviderClientController {
       return res.status(400).json({ error: 'Cliente sem telemóvel. Adicione um telemóvel para marcar como avaliada.' });
     }
 
+    const phoneKey = tryNormalizePhone(client.phone);
+    if (!phoneKey) {
+      return res.status(400).json({ error: 'Telemóvel do cliente inválido para registo de avaliação.' });
+    }
+
     await prisma.providerClientClearance.upsert({
       where: {
         providerId_phoneNormalized: {
           providerId: req.userId!,
-          phoneNormalized: client.phone,
+          phoneNormalized: phoneKey,
         },
       },
       create: {
         providerId: req.userId!,
-        phoneNormalized: client.phone,
+        phoneNormalized: phoneKey,
         userId: client.account?.userId ?? null,
         grantedAt: new Date(),
       },
@@ -419,12 +439,17 @@ class ProviderClientController {
       return res.status(400).json({ error: 'Cliente sem telemóvel.' });
     }
 
+    const phoneKey = tryNormalizePhone(client.phone);
+    if (!phoneKey) {
+      return res.status(400).json({ error: 'Telemóvel do cliente inválido.' });
+    }
+
     await prisma.providerClientClearance
       .delete({
         where: {
           providerId_phoneNormalized: {
             providerId: req.userId!,
-            phoneNormalized: client.phone,
+            phoneNormalized: phoneKey,
           },
         },
       })

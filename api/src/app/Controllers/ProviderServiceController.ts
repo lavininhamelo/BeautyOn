@@ -9,6 +9,12 @@ const serviceBody = z.object({
     .int()
     .min(5, { message: 'Duração mínima: 5 minutos' })
     .max(480, { message: 'Duração máxima: 480 minutos (8 h)' }),
+  price_cents: z.coerce
+    .number()
+    .int()
+    .min(0, { message: 'O preço não pode ser negativo' })
+    .max(99_999_999, { message: 'Preço demasiado elevado' })
+    .optional(),
   is_evaluation: z.boolean().optional(),
   requires_prior_evaluation: z.boolean().optional(),
 });
@@ -48,6 +54,7 @@ class ProviderServiceController {
         durationMinutes: true,
         isEvaluation: true,
         requiresPriorEvaluation: true,
+        priceCents: true,
       },
     });
 
@@ -56,6 +63,7 @@ class ProviderServiceController {
         id: s.id,
         name: s.name,
         duration_minutes: s.durationMinutes,
+        price_cents: s.priceCents,
         is_evaluation: s.isEvaluation,
         requires_prior_evaluation: s.requiresPriorEvaluation,
       })),
@@ -77,6 +85,7 @@ class ProviderServiceController {
         updatedAt: true,
         isEvaluation: true,
         requiresPriorEvaluation: true,
+        priceCents: true,
       },
     });
 
@@ -85,6 +94,7 @@ class ProviderServiceController {
         id: s.id,
         name: s.name,
         duration_minutes: s.durationMinutes,
+        price_cents: s.priceCents,
         is_evaluation: s.isEvaluation,
         requires_prior_evaluation: s.requiresPriorEvaluation,
         sort_order: s.sortOrder,
@@ -122,12 +132,14 @@ class ProviderServiceController {
       _max: { sortOrder: true },
     });
     const nextOrder = (maxOrder._max.sortOrder ?? 0) + 1;
+    const priceCents = parsed.data.price_cents ?? 0;
 
     const row = await prisma.providerService.create({
       data: {
         providerId: req.userId!,
         name: parsed.data.name,
         durationMinutes: parsed.data.duration_minutes,
+        priceCents,
         isEvaluation,
         requiresPriorEvaluation,
         sortOrder: nextOrder,
@@ -138,6 +150,7 @@ class ProviderServiceController {
       id: row.id,
       name: row.name,
       duration_minutes: row.durationMinutes,
+      price_cents: row.priceCents,
       sort_order: row.sortOrder,
       is_evaluation: row.isEvaluation,
       requires_prior_evaluation: row.requiresPriorEvaluation,
@@ -179,11 +192,14 @@ class ProviderServiceController {
       return res.status(404).json({ error: 'Serviço não encontrado' });
     }
 
+    const priceCents = parsed.data.price_cents ?? 0;
+
     const row = await prisma.providerService.update({
       where: { id },
       data: {
         name: parsed.data.name,
         durationMinutes: parsed.data.duration_minutes,
+        priceCents,
         isEvaluation,
         requiresPriorEvaluation,
       },
@@ -193,6 +209,7 @@ class ProviderServiceController {
       id: row.id,
       name: row.name,
       duration_minutes: row.durationMinutes,
+      price_cents: row.priceCents,
       sort_order: row.sortOrder,
       is_evaluation: row.isEvaluation,
       requires_prior_evaluation: row.requiresPriorEvaluation,

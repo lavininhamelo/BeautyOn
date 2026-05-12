@@ -1,7 +1,12 @@
 /** @type {import('tailwindcss').Config} */
+const { beautyTailwindColors } = require('./src/config/theme.config.js');
+
 module.exports = {
+  // CRA + third-party CSS: keep `important: true` so globals do not override Tailwind breakpoints (`sm:`, `lg:`).
+  // Use `true` (not `'#root'`) so utilities still apply to portaled content on `document.body`.
+  important: true,
   darkMode: ['class'],
-  content: ['./src/**/*.{js,jsx,ts,tsx}'],
+  content: ['./public/index.html', './src/**/*.{js,jsx,ts,tsx}'],
   theme: {
     extend: {
       colors: {
@@ -38,17 +43,7 @@ module.exports = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
-        beauty: {
-          rose: '#E4A0BC',
-          cream: '#FAF0F4',
-          background: '#2A1F2A',
-          surface: '#2E242E',
-          shape: '#4A3E4A',
-          muted: '#C4B4BA',
-          gray: '#9A8A95',
-          text: '#FFF5F7',
-          error: '#E06070',
-        },
+        beauty: beautyTailwindColors,
       },
       borderRadius: {
         lg: 'var(--radius)',

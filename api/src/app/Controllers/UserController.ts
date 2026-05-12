@@ -1,26 +1,11 @@
-import { createHash, randomBytes } from 'node:crypto';
-import { addHours } from 'date-fns/addHours';
 import { z } from 'zod';
 import type { Request, Response } from 'express';
 
-import Mail from '../../lib/Mail.js';
 import { prisma } from '../../lib/prisma.js';
 import { hashPassword, verifyPassword } from '../../lib/authPassword.js';
 import { withFileUrl } from '../../lib/fileUrl.js';
 import { normalizePhoneForStorage } from '../../lib/phoneNormalize.js';
 import { attachGuestAppointmentsToUser } from '../../lib/linkGuestAppointments.js';
-
-function sha256(input: string): string {
-  return createHash('sha256').update(input).digest('hex');
-}
-
-function claimBaseUrl(): string {
-  return (
-    process.env.CLIENT_CLAIM_URL ||
-    process.env.FRONTEND_URL ||
-    'http://localhost:3000'
-  ).replace(/\/$/, '');
-}
 
 class UserController {
   async profile(req: Request, res: Response) {
@@ -54,14 +39,15 @@ class UserController {
 
   async avatar(req: Request, res: Response) {
     const uploaded = (req as Request & { file?: Express.Multer.File }).file;
-    if (!uploaded?.filename || !uploaded.originalname) {
+    if (!uploaded?.buffer?.length || !uploaded.originalname) {
       return res.status(400).json({ error: 'Envie um ficheiro com o campo "avatar".' });
     }
 
     const file = await prisma.file.create({
       data: {
         name: uploaded.originalname,
-        path: uploaded.filename,
+        mimeType: uploaded.mimetype || 'application/octet-stream',
+        data: new Uint8Array(uploaded.buffer),
       },
     });
 
@@ -123,39 +109,9 @@ class UserController {
       });
 
       if (existingClient && !existingClient.account) {
-        const email = parsed.data.email.trim().toLowerCase();
-        const rawToken = randomBytes(32).toString('hex');
-        const tokenHash = sha256(rawToken);
-        const expiresAt = addHours(new Date(), 24);
-
-        await prisma.clientClaimToken.create({
-          data: {
-            tokenHash,
-            clientId: existingClient.id,
-            email,
-            expiresAt,
-          },
-        });
-
-        const link = `${claimBaseUrl()}/claim?token=${encodeURIComponent(rawToken)}`;
-        try {
-          await Mail.sendMail({
-            to: email,
-            subject: 'BeautyOn — concluir registo e associar conta',
-            template: 'client_claim',
-            context: {
-              name: existingClient.name,
-              link,
-              expiresHours: 24,
-            },
-          });
-        } catch (err) {
-          console.error('client claim mail failed', err);
-        }
-
         return res.status(409).json({
           error:
-            'Este telemóvel já está cadastrado como cliente. Enviámos um email com um link para concluir o registo e associar a conta.',
+            'Este telemóvel já está cadastrado como cliente. Conclua o registo para associar a conta.',
           code: 'CLIENT_CLAIM_REQUIRED',
         });
       }

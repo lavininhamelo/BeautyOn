@@ -47,7 +47,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
     if (!claimPending) return;
     const code = claimCode.replace(/\D/g, '').slice(0, 6);
     if (!/^\d{6}$/.test(code)) {
-      addToast({ type: 'error', title: 'Código inválido', description: 'Digite os 6 dígitos.' });
+      addToast({ type: 'error', title: 'Código inválido', description: 'Indica os 6 dígitos.' });
       return;
     }
     try {
@@ -58,7 +58,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
         code,
         password: claimPending.password,
       });
-      addToast({ type: 'success', title: 'Conta criada', description: 'Já pode iniciar sessão.' });
+      addToast({ type: 'success', title: 'Conta criada', description: 'Já podes iniciar sessão.' });
       setClaimPending(null);
       history.push('/');
     } catch (err) {
@@ -80,8 +80,8 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
         const schema = Yup.object().shape({
           name: Yup.string().required('Nome obrigatório'),
           email: Yup.string()
-            .required('Email obrigatório')
-            .email('Email inválido'),
+            .required('E-mail obrigatório')
+            .email('E-mail inválido'),
           phone: Yup.string()
             .required('Telemóvel obrigatório')
             .min(8, 'Telemóvel inválido')
@@ -105,7 +105,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
         addToast({
           type: 'success',
           title: 'Conta criada',
-          description: 'Já pode iniciar sessão na BeautyOn.',
+          description: 'Já podes iniciar sessão na BeautyOn.',
         });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -130,7 +130,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
                 type: 'error',
                 title: 'Não encontrado',
                 description:
-                  'Não encontramos este cliente cadastrado (ou já tem conta). Confirma o telemóvel.',
+                  'Não encontrámos este registo de cliente (ou a conta já existe). Confirma o telemóvel.',
               });
               return;
             }
@@ -139,7 +139,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
             addToast({
               type: 'success',
               title: 'Código enviado',
-              description: 'Enviámos um código (mock SMS) para o teu e-mail.',
+              description: 'Enviámos um código de verificação para o teu e-mail.',
             });
           } catch (e) {
             addToast({
@@ -156,7 +156,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
         addToast({
           type: 'error',
           title: 'Erro no registo',
-          description: 'Tente novamente.',
+          description: 'Tenta novamente.',
         });
       }
     },
@@ -172,12 +172,20 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
       title={title}
       backgroundImage={signUpBackgroundImg}
       animationFrom="right"
+      authLogo="signup"
     >
       <Form ref={formRef} onSubmit={handleFormSubmit}>
         <h1>{title}</h1>
 
         <Input name="name" icon={FiUser} type="text" placeholder="Nome" />
-        <Input name="email" icon={FiMail} type="text" placeholder="Email" />
+        <Input
+          name="email"
+          icon={FiMail}
+          type="email"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="E-mail"
+        />
         <Input name="phone" icon={FiPhone} type="tel" placeholder="Telemóvel" />
         <Input
           name="password"
@@ -191,7 +199,7 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
       </Form>
       <Link to="/">
         <FiArrowLeft />
-        Voltar ao login
+        Voltar ao início de sessão
       </Link>
       {registerAsProvider ? (
         <Link to="/signup">Sou cliente</Link>
@@ -203,20 +211,20 @@ const SignUp: React.FunctionComponent<SignUpProps> = ({
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/65 p-6"
+          className="fixed inset-0 z-[999] flex items-center justify-center bg-black/40 p-6 backdrop-blur-sm"
           onClick={() => !claimSubmitting && setClaimPending(null)}
         >
           <div
-            className="w-full max-w-[420px] rounded-[14px] border border-white/[0.08] bg-[var(--color-black-medium)] p-5"
+            className="w-full max-w-[420px] rounded-[14px] border border-[var(--color-input-border)] bg-[var(--color-white)] p-5 shadow-lg"
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="mb-2">{claimTitle}</h2>
+            <h2 className="mb-2 text-[var(--color-text-white)]">{claimTitle}</h2>
             <p className="mb-3.5 text-sm leading-snug text-[var(--color-light-gray)]">
-              Digite os 6 dígitos enviados (mock SMS) para o seu e-mail e clique em criar conta.
+              Introduz os seis dígitos que enviámos para o teu e-mail e clica em «Criar conta».
             </p>
 
             <input
-              className="mb-4 mt-1 h-[54px] w-full rounded-xl border border-white/[0.12] bg-white/[0.04] text-center text-[22px] font-extrabold tracking-[0.5em] text-[var(--color-text-white)]"
+              className="mb-4 mt-1 h-[54px] w-full rounded-xl border border-[var(--color-input-border)] bg-[var(--color-inputs)] text-center text-[22px] font-extrabold tracking-[0.5em] text-[var(--color-text-white)]"
               inputMode="numeric"
               pattern="\d*"
               maxLength={6}

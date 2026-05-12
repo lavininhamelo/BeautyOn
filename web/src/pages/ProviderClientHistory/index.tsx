@@ -96,14 +96,14 @@ const ProviderClientHistory: React.FC = () => {
                     <span className="mb-0 block text-sm text-[var(--color-light-gray)]">
                       {formatWhen(r.date)}
                     </span>
-                    <span className="mt-2.5 inline-flex rounded-full border border-white/[0.12] bg-white/[0.06] px-2.5 py-1.5 text-xs text-[var(--color-white)]">
+                    <span className="mt-2.5 inline-flex rounded-full border border-[var(--color-input-border)] bg-[var(--color-white)]/90 px-2.5 py-1.5 text-xs text-[var(--color-text-white)]">
                       Status: {statusLabel(r.status)}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link
                       to={`/provider/appointments/${r.id}/record`}
-                      className="rounded-lg border-0 bg-transparent px-3 py-2 text-sm text-[var(--color-primary)] no-underline hover:bg-white/[0.06]"
+                      className="rounded-lg border-0 bg-transparent px-3 py-2 text-sm text-[var(--color-primary)] no-underline hover:bg-[var(--color-primary)]/10"
                     >
                       Abrir registo
                     </Link>

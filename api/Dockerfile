@@ -25,6 +25,6 @@ COPY src/app/Views/emails ./src/app/Views/emails
 COPY docker/entrypoint.prod.sh /entrypoint.prod.sh
 RUN chmod +x /entrypoint.prod.sh
 
-EXPOSE 3333
+EXPOSE 3000
 ENTRYPOINT ["/entrypoint.prod.sh"]
 CMD ["node", "dist/server.js"]

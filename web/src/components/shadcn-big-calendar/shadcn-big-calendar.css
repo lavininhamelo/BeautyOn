@@ -842,3 +842,119 @@ button.rbc-input::-moz-focus-inner {
   align-items: center;
   justify-content: center;
 }
+
+/* Provider calendar toolbar: prominent date on mobile, prev/next icons */
+.beautyon-provider-calendar .beautyon-rbc-toolbar {
+  display: grid;
+  gap: 0.75rem;
+  align-items: center;
+  padding: 0.75rem 0.75rem;
+  grid-template-columns: 1fr;
+  grid-template-areas:
+    'label'
+    'nav'
+    'views';
+}
+
+.beautyon-provider-calendar .beautyon-rbc-toolbar .beautyon-rbc-label {
+  grid-area: label;
+  margin: 0;
+  min-width: 0;
+  flex-grow: 0;
+  text-align: center;
+  font-size: 1rem;
+  line-height: 1.35;
+  padding: 0 0.25rem;
+}
+
+.beautyon-provider-calendar .beautyon-rbc-toolbar .beautyon-rbc-nav {
+  grid-area: nav;
+  justify-self: center;
+  width: fit-content;
+  max-width: 100%;
+}
+
+.beautyon-provider-calendar .beautyon-rbc-toolbar .beautyon-rbc-views {
+  grid-area: views;
+  justify-self: center;
+  width: min(100%, 22.5rem);
+  max-width: 100%;
+  height: auto;
+  min-height: 2.25rem;
+  flex-wrap: nowrap;
+  justify-content: center;
+  row-gap: 0;
+  margin-inline: auto;
+}
+
+.beautyon-provider-calendar
+  .beautyon-rbc-toolbar
+  .beautyon-rbc-views.rbc-btn-group {
+  gap: 0.25rem;
+  padding: 0.25rem;
+}
+
+.beautyon-provider-calendar
+  .beautyon-rbc-toolbar
+  .beautyon-rbc-views.rbc-btn-group
+  > button {
+  flex: 1 1 0%;
+  min-width: 0;
+  padding: 0.375rem 0.625rem;
+  text-align: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .beautyon-provider-calendar .beautyon-rbc-toolbar {
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr) minmax(0, auto);
+    grid-template-areas: 'nav label views';
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    align-items: center;
+  }
+
+  .beautyon-provider-calendar .beautyon-rbc-toolbar .beautyon-rbc-label {
+    font-size: 0.95rem;
+    padding: 0 0.5rem;
+  }
+
+  .beautyon-provider-calendar .beautyon-rbc-toolbar .beautyon-rbc-nav {
+    justify-self: start;
+  }
+
+  .beautyon-provider-calendar .beautyon-rbc-toolbar .beautyon-rbc-views {
+    justify-self: end;
+    width: fit-content;
+    max-width: min(100%, 24rem);
+    flex-wrap: nowrap;
+  }
+
+  .beautyon-provider-calendar
+    .beautyon-rbc-toolbar
+    .beautyon-rbc-views.rbc-btn-group
+    > button {
+    flex: 1 1 0%;
+    min-width: 4.25rem;
+    padding: 0.375rem 0.75rem;
+  }
+}
+
+.beautyon-provider-calendar
+  .beautyon-rbc-toolbar
+  .beautyon-rbc-nav.rbc-btn-group
+  > button.beautyon-rbc-icon-btn {
+  flex: 0 0 auto;
+  min-width: 2.5rem;
+  padding-left: 0.375rem;
+  padding-right: 0.375rem;
+}
+
+.beautyon-provider-calendar
+  .beautyon-rbc-toolbar
+  .beautyon-rbc-nav.rbc-btn-group
+  > button:first-of-type {
+  flex: 0 1 auto;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+}

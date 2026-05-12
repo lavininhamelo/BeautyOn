@@ -69,7 +69,7 @@ const ResetPassword: React.FunctionComponent = () => {
           type: 'error',
           title: 'Erro ao redefinir palavra-passe',
           description:
-            'Ocorreu um erro ao tentar redefinir a sua palavra-passe, por favor tente novamente.',
+            'Não foi possível redefinir a palavra-passe. Tenta novamente.',
         });
       }
     },
@@ -82,7 +82,7 @@ const ResetPassword: React.FunctionComponent = () => {
       animationFrom="left"
     >
       <Form ref={formRef} onSubmit={handleFormSubmit}>
-        <h1>Reset password</h1>
+        <h1>Redefinir palavra-passe</h1>
 
         <Input
           name="password"

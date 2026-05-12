@@ -6,6 +6,8 @@ import { FiArrowLeft } from 'react-icons/fi';
 
 import api from '../../services/api';
 import ProviderHeader from '../../components/ProviderHeader';
+import { PhotoLightboxModal } from '../../components/PhotoLightboxModal';
+import type { PhotoLightboxSlide } from '../../components/PhotoLightboxModal';
 
 type AppointmentStatus = 'scheduled' | 'attended' | 'canceled' | 'no_show' | string;
 
@@ -50,6 +52,10 @@ const ProviderClientTimeline: React.FC = () => {
 
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<TimelineResponse | null>(null);
+  const [lightbox, setLightbox] = useState<{
+    slides: PhotoLightboxSlide[];
+    index: number;
+  } | null>(null);
 
   useEffect(() => {
     if (!Number.isFinite(id)) return;
@@ -95,7 +101,7 @@ const ProviderClientTimeline: React.FC = () => {
         </header>
 
         <section className="rounded-[10px] bg-[var(--color-black-medium)] p-6">
-          <h1 className="mb-2 text-[28px]">Histórico</h1>
+          <h1 className="mb-2 text-[28px] text-[var(--color-text-white)]">Histórico</h1>
           <p className="mb-[18px] text-[var(--color-light-gray)]">
             Linha do tempo do cliente {clientName}: atendimento + texto + fotos.
           </p>
@@ -119,14 +125,14 @@ const ProviderClientTimeline: React.FC = () => {
                     <div className="mt-1 text-[13px] text-[var(--color-light-gray)]">
                       Atendimento: {when(it.appointment.date)}
                     </div>
-                    <span className="mt-2.5 inline-flex rounded-full border border-white/[0.12] bg-white/[0.06] px-2.5 py-1.5 text-xs text-[var(--color-white)]">
+                    <span className="mt-2.5 inline-flex rounded-full border border-[var(--color-input-border)] bg-[var(--color-white)]/90 px-2.5 py-1.5 text-xs text-[var(--color-text-white)]">
                       Status: {statusLabel(it.appointment.status)}
                     </span>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link
                       to={`/provider/appointments/${it.appointment.id}/record`}
-                      className="rounded-lg border-0 bg-transparent px-3 py-2 text-sm text-[var(--color-primary)] no-underline hover:bg-white/[0.06]"
+                      className="rounded-lg border-0 bg-transparent px-3 py-2 text-sm text-[var(--color-primary)] no-underline hover:bg-[var(--color-primary)]/10"
                     >
                       {it.record ? 'Editar registo' : 'Criar registo'}
                     </Link>
@@ -136,7 +142,7 @@ const ProviderClientTimeline: React.FC = () => {
                 {it.record ? (
                   <>
                     {!!it.record.summary && (
-                      <p className="mt-2.5 font-bold text-[var(--color-white)]">{it.record.summary}</p>
+                      <p className="mt-2.5 font-bold text-[var(--color-text-white)]">{it.record.summary}</p>
                     )}
                     <pre className="mt-2.5 whitespace-pre-wrap font-[inherit] text-[var(--color-light-gray)]">
                       {it.record.notes}
@@ -144,16 +150,29 @@ const ProviderClientTimeline: React.FC = () => {
 
                     {Array.isArray(it.record.photos) && it.record.photos.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-2.5">
-                        {it.record.photos.map(p => (
-                          <a
+                        {it.record.photos.map((p, photoIdx) => (
+                          <button
                             key={p.id}
-                            href={p.file.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex h-[88px] w-[88px] items-center justify-center overflow-hidden rounded-[10px] border border-white/[0.12] bg-white/[0.06]"
+                            type="button"
+                            className="inline-flex h-[88px] w-[88px] cursor-pointer items-center justify-center overflow-hidden rounded-[10px] border border-[var(--color-input-border)] bg-[var(--color-white)] p-0 transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-primary)]"
+                            onClick={() =>
+                              setLightbox({
+                                slides: it.record!.photos.map(ph => ({
+                                  url: ph.file.url,
+                                  alt: ph.file.name,
+                                  caption: ph.caption,
+                                })),
+                                index: photoIdx,
+                              })
+                            }
+                            aria-label={`Abrir imagem ${photoIdx + 1} de ${it.record!.photos.length} em ecrã completo`}
                           >
-                            <img className="block h-full w-full object-cover" src={p.file.url} alt={p.caption ?? ''} />
-                          </a>
+                            <img
+                              className="pointer-events-none block h-full w-full object-cover"
+                              src={p.file.url}
+                              alt={p.caption ?? p.file.name}
+                            />
+                          </button>
                         ))}
                       </div>
                     )}
@@ -169,6 +188,15 @@ const ProviderClientTimeline: React.FC = () => {
           )}
         </section>
       </main>
+
+      {lightbox && (
+        <PhotoLightboxModal
+          open
+          slides={lightbox.slides}
+          initialIndex={lightbox.index}
+          onClose={() => setLightbox(null)}
+        />
+      )}
     </div>
   );
 };

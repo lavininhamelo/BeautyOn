@@ -1,126 +1,126 @@
-# BeautyOn
+# BeautyOn API
 
-API de agendamentos (Express, TypeScript, Prisma, **MySQL**). Fila de jobs (ex.: email de cancelamento) persistida na própria base (`jobs`), no mesmo processo Node — sem Redis.
+Scheduling API (Express, TypeScript, Prisma, **MySQL**). Job queue (e.g. cancellation email) persisted in the same database (`jobs`), in the same Node process — no Redis.
 
-## Requisitos
+## Requirements
 
 - **Node.js** 20+
 - **npm** 9+
-- **MySQL** 8.0+ (recomendado; a fila usa `FOR UPDATE SKIP LOCKED`)
+- **MySQL** 8.0+ (recommended; the queue uses `FOR UPDATE SKIP LOCKED`)
 
-## Instalação local
+## Local setup
 
 ```bash
 npm install
 ```
 
-Cria um ficheiro `.env` (copia de [`.env.example`](./.env.example)) e define `DATABASE_URL`, `APP_SECRET` e (opcional) `MAIL_*`.
+Create a `.env` file (copy from [`.env.example`](./.env.example)) and set `DATABASE_URL`, `APP_SECRET`, and optionally `MAIL_*`.
 
 ```bash
 DATABASE_URL="mysql://USER:PASSWORD@127.0.0.1:3306/beautyon"
-APP_SECRET="uma-chave-segura"
-APP_URL="http://localhost:3333"
-PORT=3333
+APP_SECRET="a-secure-random-string"
+APP_URL="http://localhost:3000"
+PORT=3000
 ```
 
-Aplica o schema na base:
+Apply the schema to the database:
 
 ```bash
 npx prisma migrate dev
 ```
 
-Gera o client do Prisma (o script `build` também corre isto):
+Generate the Prisma client (the `build` script also runs this):
 
 ```bash
 npx prisma generate
 ```
 
-### Correr em desenvolvimento
+### Development server
 
 ```bash
 npm run dev
 ```
 
-A API fica em `http://localhost:3333` (ou na porta definida em `PORT`).
+The API listens at `http://localhost:3000` (or the port in `PORT`).
 
-### Rotas úteis (com `Authorization: Bearer <token>`)
+### Useful routes (with `Authorization: Bearer <token>`)
 
-| Método e URL | Descrição |
-|-------------|-----------|
-| `GET /profile` | Dados do utilizador (incl. `avatar` com `url`) |
-| `POST /users/avatar` | `multipart/form-data` com ficheiro no campo **`avatar`**; grava avatar e devolve `{ id, name, path, url }` |
-| `GET /appointments/me` | Igual a `/appointments` quando não há query; com **`?year=2026&month=4&day=9`** (mês 1–12): agendamentos **desse dia** |
+| Method & URL | Description |
+|--------------|-------------|
+| `GET /profile` | Current user (includes `avatar` with `url`) |
+| `POST /users/avatar` | `multipart/form-data` with file field **`avatar`**; saves avatar, returns `{ id, name, path, url }` |
+| `GET /appointments/me` | Same as `/appointments` without query; with **`?year=2026&month=4&day=9`** (month 1–12): appointments **for that day** |
 
-### Outros scripts úteis
+### Other useful scripts
 
-| Comando | Descrição |
-|--------|-----------|
-| `npm run build` | Gera o Prisma client e compila o TypeScript para `dist/` |
-| `npm start` | Inicia a app já compilada (`node dist/server.js`) |
-| `npm run typecheck` | TypeScript em modo verificação (`tsc --noEmit`) |
-| `npx prisma migrate dev` | Cria/aplica migrações em dev (interativo) |
-| `npx prisma migrate deploy` | Aplica migrações pendentes (produção/CI) |
-| `npx prisma db push` | Sincroniza o schema com a DB **sem** criar ficheiro de migração (só em dev) |
-| `npm run set-provider -- user@example.com` | Marca utilizador como prestador (`provider: true`) |
+| Command | Description |
+|---------|-------------|
+| `npm run build` | Prisma generate + compile TypeScript to `dist/` |
+| `npm start` | Run compiled app (`node dist/server.js`) |
+| `npm run typecheck` | TypeScript check only (`tsc --noEmit`) |
+| `npx prisma migrate dev` | Create/apply migrations in dev (interactive) |
+| `npx prisma migrate deploy` | Apply pending migrations (production/CI) |
+| `npx prisma db push` | Sync schema to DB **without** a migration file (dev only) |
+| `npm run set-provider -- user@example.com` | Mark user as provider (`provider: true`) |
 
-## Variáveis de ambiente (resumo)
+## Environment variables (summary)
 
-| Variável | Uso |
-|----------|-----|
-| `DATABASE_URL` | URL do MySQL (obrigatória para o Prisma) |
-| `APP_SECRET` | Chave do JWT (login) |
-| `APP_URL` | Base URL pública (links de ficheiros no e-mail / API) |
-| `PORT` | Porta HTTP (padrão: `3333`) |
-| `CORS_ORIGIN` | Origens CORS, separadas por vírgula; se vazio, aceita o front em `http://localhost:3000` e `http://127.0.0.1:3000`; `*` = qualquer origem (evitar em prod) |
-| `QUEUE_POLL_INTERVAL_MS` | Intervalo do worker da fila em ms (padrão: `2000`) |
-| `QUEUE_MAX_ATTEMPTS` | Tentativas por job antes de `failed` (padrão: `5`) |
-| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS` | Envio de e-mail (Nodemailer) |
+| Variable | Purpose |
+|----------|---------|
+| `DATABASE_URL` | MySQL URL (required for Prisma) |
+| `APP_SECRET` | JWT signing secret (login) |
+| `APP_URL` | Public base URL (file links in email / API) |
+| `PORT` | HTTP port (default `3000`) |
+| `CORS_ORIGIN` | Comma-separated CORS origins; if empty, allows `http://localhost:3000` and `http://127.0.0.1:3000`; `*` = any origin (avoid in production) |
+| `QUEUE_POLL_INTERVAL_MS` | Queue worker poll interval in ms (default `2000`) |
+| `QUEUE_MAX_ATTEMPTS` | Retries per job before `failed` (default `5`) |
+| `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS` | Outbound email (Nodemailer) |
 
-## Docker (desenvolvimento)
+## Docker (development)
 
-Na pasta `api/` existe `docker-compose.yml` com **MySQL 8.4**, **Mailhog** e o serviço **`app`** (`Dockerfile.dev`).
+`api/docker-compose.yml` includes **MySQL 8.4**, **Mailhog**, and the **`app`** service (`Dockerfile.dev`).
 
-### Só infra (MySQL + Mailhog) — API a correr no teu terminal
+### Infra only (MySQL + Mailhog) — API on your host
 
 ```bash
 cd api && npm run docker:infra
 ```
 
-No `.env` local (Node **fora** do Docker) usa `127.0.0.1` / `localhost`:
+In local `.env` (Node **outside** Docker) use `127.0.0.1` / `localhost`:
 
 - `DATABASE_URL="mysql://root:root@127.0.0.1:3306/beautyon"`
 - `MAIL_HOST=127.0.0.1`, `MAIL_PORT=1025`
 
-Depois: `npm run dev` na pasta `api/`.
+Then run `npm run dev` in `api/`.
 
-### Tudo no Compose (API dentro do contentor)
+### Full stack in Compose (API in container)
 
 ```bash
 cd api && docker compose up -d --build
 ```
 
-Migrações na primeira vez (com os serviços a correr):
+First-time migrations (with services up):
 
 ```bash
 docker compose run --rm app npx prisma migrate deploy
 ```
 
-Atalhos: `npm run docker:up`, `npm run docker:logs:app`. UI do Mailhog: `http://localhost:8025`.
+Shortcuts: `npm run docker:up`, `npm run docker:logs:app`. Mailhog UI: `http://localhost:8025`.
 
-### Imagem de produção
+### Production image
 
 ```bash
 cd api && docker build -f Dockerfile -t beautyon-api:prod .
 ```
 
-O `entrypoint` de produção corre `prisma migrate deploy` antes de `node dist/server.js` (define `SKIP_MIGRATIONS=1` para saltar).
+The production entrypoint runs `prisma migrate deploy` before `node dist/server.js` (set `SKIP_MIGRATIONS=1` to skip).
 
-## Estrutura do repositório (notas)
+## Repository layout (notes)
 
-- `prisma/` — `schema.prisma` e `migrations/`
-- `src/` — código TypeScript
-- `dist/` — saída do `tsc` (gerada pelo build)
+- `prisma/` — `schema.prisma` and `migrations/`
+- `src/` — TypeScript source
+- `dist/` — `tsc` output (from build)
 
-## Licença
+## License
 
-MIT (ver `package.json`).
+MIT (see `package.json`).

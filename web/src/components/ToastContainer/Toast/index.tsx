@@ -45,8 +45,10 @@ const Toast: React.FunctionComponent<ToastProps> = ({ message, style }) => {
   return (
     <animated.div
       style={style}
+      role="alert"
+      onClick={() => removeToast(message.id)}
       className={cn(
-        'relative mb-2 flex w-[360px] rounded-[0.625rem] py-4 pl-4 pr-[3.25rem] shadow-md',
+        'pointer-events-auto relative mb-2 flex w-[360px] max-w-[calc(100vw-3.75rem)] cursor-pointer rounded-[0.625rem] py-4 pl-4 pr-[3.25rem] shadow-md outline-none focus-visible:ring-2 focus-visible:ring-white/40',
         typeStyles[type],
         !hasDescription && 'items-center',
       )}
@@ -64,14 +66,18 @@ const Toast: React.FunctionComponent<ToastProps> = ({ message, style }) => {
       </div>
 
       <button
-        onClick={() => removeToast(message.id)}
+        onClick={e => {
+          e.stopPropagation();
+          removeToast(message.id);
+        }}
         type="button"
+        aria-label="Fechar notificação"
         className={cn(
-          'absolute right-4 border-0 bg-transparent opacity-60 hover:opacity-100',
-          hasDescription ? 'top-[1.1875rem]' : 'top-5',
+          'absolute right-2 top-1/2 flex h-11 min-h-[44px] w-11 min-w-[44px] -translate-y-1/2 items-center justify-center rounded-lg border-0 bg-transparent opacity-70 hover:opacity-100',
+          hasDescription && 'top-[1.1875rem] translate-y-0',
         )}
       >
-        <FiXCircle size={18} />
+        <FiXCircle size={18} aria-hidden />
       </button>
     </animated.div>
   );

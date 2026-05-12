@@ -3,7 +3,7 @@ import type { Request, Response } from 'express';
 import multer from 'multer';
 
 import multerConfig from '../../config/multer.js';
-import { fileUrlForPath } from '../../lib/fileUrl.js';
+import { fileUrlForId } from '../../lib/fileUrl.js';
 import { prisma } from '../../lib/prisma.js';
 import { normalizePhoneForStorage } from '../../lib/phoneNormalize.js';
 
@@ -52,7 +52,7 @@ class AppointmentRecordController {
             id: true,
             sortOrder: true,
             caption: true,
-            file: { select: { id: true, path: true, name: true } },
+            file: { select: { id: true, name: true } },
           },
         },
       },
@@ -75,8 +75,7 @@ class AppointmentRecordController {
         file: {
           id: p.file.id,
           name: p.file.name,
-          path: p.file.path,
-          url: fileUrlForPath(p.file.path),
+          url: fileUrlForId(p.file.id),
         },
       })),
     });
@@ -139,7 +138,11 @@ class AppointmentRecordController {
         const createdFiles = await Promise.all(
           files.map(f =>
             tx.file.create({
-              data: { name: f.originalname, path: f.filename },
+              data: {
+                name: f.originalname,
+                mimeType: f.mimetype || 'application/octet-stream',
+                data: new Uint8Array(f.buffer),
+              },
               select: { id: true },
             }),
           ),

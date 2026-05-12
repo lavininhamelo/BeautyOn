@@ -37,8 +37,8 @@ const Profile: React.FunctionComponent = () => {
         const schema = Yup.object().shape({
           name: Yup.string().required('Nome obrigatório'),
           email: Yup.string()
-            .required('Email obrigatório')
-            .email('Email inválido'),
+            .required('E-mail obrigatório')
+            .email('E-mail inválido'),
           phone: Yup.string()
             .min(8, 'Telemóvel inválido')
             .max(32, 'Telemóvel inválido')
@@ -93,8 +93,8 @@ const Profile: React.FunctionComponent = () => {
 
         addToast({
           type: 'success',
-          title: 'Profile Updated',
-          description: 'Your profile information was successfully updated!',
+          title: 'Perfil atualizado',
+          description: 'As tuas alterações foram guardadas.',
         });
       } catch (err) {
         if (err instanceof Yup.ValidationError) {
@@ -108,7 +108,7 @@ const Profile: React.FunctionComponent = () => {
         addToast({
           type: 'error',
           title: 'Erro ao atualizar o perfil',
-          description: 'Ocorreu um erro ao tentar atualizar o seu perfil, por favor tente novamente.',
+          description: 'Não foi possível atualizar o perfil. Tenta novamente.',
         });
       }
     },
@@ -184,7 +184,14 @@ const Profile: React.FunctionComponent = () => {
           <h1 className="mb-6 self-stretch text-left text-xl">Meu perfil:</h1>
 
           <Input name="name" icon={FiUser} type="text" placeholder="Name" />
-          <Input name="email" icon={FiMail} type="text" placeholder="Email" />
+          <Input
+            name="email"
+            icon={FiMail}
+            type="email"
+            inputMode="email"
+            autoComplete="email"
+            placeholder="E-mail"
+          />
           <Input
             name="phone"
             icon={FiPhone}
